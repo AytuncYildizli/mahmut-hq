@@ -221,7 +221,7 @@ function getDeptSectionHeight(deptIdx) {
 
 function resize(){
   W=wrap.clientWidth;
-  S=Math.max(0.5, Math.min(W/1600, 1.2));
+  S=Math.max(0.8, Math.min(W/1200, 1.5));
   let totalH = 60*S;
   for(let i=0;i<DEPARTMENTS.length;i++){
     totalH += (getDeptSectionHeight(i)+HEADER_HEIGHT+DEPT_GAP)*S;
@@ -1144,8 +1144,8 @@ function drawSpeechBubble(x,y,text,color){
 
 // ─── NAME TAG (IMPROVED — larger, contrast bg, bigger status dot) ───
 function drawNameTag(x,y,name,role,color,status){
-  const nameFontSize=12*S;
-  const roleFontSize=8*S;
+  const nameFontSize=Math.max(14, 16*S);
+  const roleFontSize=Math.max(10, 11*S);
 
   // Name text
   ctx.font=`bold ${nameFontSize}px 'Courier New', monospace`;
@@ -1153,35 +1153,47 @@ function drawNameTag(x,y,name,role,color,status){
   const nameW=ctx.measureText(name).width;
 
   // Background plate for readability
-  const plateW=nameW+28*S;
-  const plateH=nameFontSize+roleFontSize+12*S;
-  ctx.fillStyle=rgba('#0a0a1a',0.85);
-  ctx.fillRect(x-plateW/2,y-3*S,plateW,plateH);
-  ctx.strokeStyle=rgba(color,0.25);
-  ctx.lineWidth=S;
-  ctx.strokeRect(x-plateW/2,y-3*S,plateW,plateH);
+  const plateW=nameW+32*S;
+  const plateH=nameFontSize+roleFontSize+16*S;
+  const plateX=x-plateW/2, plateY=y-4*S;
+  // Rounded rect background
+  const cr=6*S;
+  ctx.fillStyle=rgba('#0a0a1a',0.9);
+  ctx.beginPath();
+  ctx.moveTo(plateX+cr,plateY);ctx.lineTo(plateX+plateW-cr,plateY);
+  ctx.quadraticCurveTo(plateX+plateW,plateY,plateX+plateW,plateY+cr);
+  ctx.lineTo(plateX+plateW,plateY+plateH-cr);
+  ctx.quadraticCurveTo(plateX+plateW,plateY+plateH,plateX+plateW-cr,plateY+plateH);
+  ctx.lineTo(plateX+cr,plateY+plateH);
+  ctx.quadraticCurveTo(plateX,plateY+plateH,plateX,plateY+plateH-cr);
+  ctx.lineTo(plateX,plateY+cr);
+  ctx.quadraticCurveTo(plateX,plateY,plateX+cr,plateY);
+  ctx.closePath();ctx.fill();
+  // Colored top accent line
+  ctx.fillStyle=rgba(color,0.6);
+  ctx.fillRect(plateX+cr,plateY,plateW-cr*2,2);
 
-  // Status dot (bigger, 4px radius)
-  const dotR=4*S;
-  const dotX=x-nameW/2-10*S;
+  // Status dot (bigger, 5px radius)
+  const dotR=Math.max(5, 5*S);
+  const dotX=x-nameW/2-14*S;
   const dotY=y+nameFontSize/2;
   ctx.beginPath();ctx.arc(dotX,dotY,dotR,0,Math.PI*2);
   const dotColor=status==='online'?'#22c55e':(status==='idle'?'#f59e0b':'#555');
   ctx.fillStyle=dotColor;ctx.fill();
   if(status==='online'){
-    ctx.strokeStyle=rgba('#22c55e',0.3);ctx.lineWidth=2*S;ctx.stroke();
+    ctx.strokeStyle=rgba('#22c55e',0.4);ctx.lineWidth=2*S;ctx.stroke();
   }
 
-  // Name
+  // Name — bright white for max readability
   const isOff=status==='offline';
-  ctx.fillStyle=isOff?rgba('#888',0.5):rgba(color,0.95);
+  ctx.fillStyle=isOff?'#666':'#f0f0f0';
   ctx.font=`bold ${nameFontSize}px 'Courier New', monospace`;
   ctx.fillText(name,x,y);
 
   // Role subtitle
-  ctx.fillStyle=rgba('#888',0.6);
+  ctx.fillStyle=rgba(color,0.7);
   ctx.font=`${roleFontSize}px 'Courier New', monospace`;
-  ctx.fillText(role,x,y+nameFontSize+2*S);
+  ctx.fillText(role,x,y+nameFontSize+3*S);
 }
 
 // ─── BUBBLE CYCLE ───
