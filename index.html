@@ -1,0 +1,1991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mahmut Global HQ — Agent Office v4 LIVE</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;background:#0a0a1a;font-family:'Courier New',monospace;color:#e0e0e0;overflow:hidden}
+#wrap{position:relative;width:100%;height:100%;display:flex;flex-direction:column}
+#banner{height:52px;background:linear-gradient(180deg,#0d0d28,#0d0d20);border-bottom:2px solid #7b2ff2;display:flex;align-items:center;justify-content:space-between;padding:0 18px;z-index:10;flex-shrink:0}
+#banner .logo{display:flex;align-items:center;gap:12px}
+#banner .logo .m-box{width:36px;height:36px;background:linear-gradient(135deg,#7b2ff2,#a855f7);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:#fff;border:2px solid #c084fc;box-shadow:0 0 12px #7b2ff280}
+#banner .title{font-size:18px;font-weight:900;color:#c084fc;text-shadow:0 0 8px #7b2ff2,0 0 20px #7b2ff280;letter-spacing:3px}
+#banner .right{display:flex;align-items:center;gap:16px;font-size:12px}
+#banner .status-dots{display:flex;gap:10px;align-items:center}
+#banner .status-dots span{display:flex;align-items:center;gap:4px;font-size:11px;color:#8888aa}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.dot.on{background:#22c55e;box-shadow:0 0 6px #22c55e}
+.dot.warn{background:#f59e0b;box-shadow:0 0 6px #f59e0b}
+.dot.off{background:#555}
+#clock{font-size:14px;color:#a78bfa;font-weight:700;letter-spacing:1px}
+#canvas-wrap{flex:1;position:relative;overflow-y:auto;overflow-x:hidden}
+#canvas-wrap::-webkit-scrollbar{width:8px}
+#canvas-wrap::-webkit-scrollbar-track{background:#0a0a1a}
+#canvas-wrap::-webkit-scrollbar-thumb{background:#7b2ff240;border-radius:4px}
+#canvas-wrap::-webkit-scrollbar-thumb:hover{background:#7b2ff280}
+canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+#scanlines{position:fixed;top:52px;left:0;right:0;bottom:34px;pointer-events:none;z-index:5;opacity:0.04;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.3) 2px,rgba(0,0,0,0.3) 4px)}
+#vignette{position:fixed;top:52px;left:0;right:0;bottom:34px;pointer-events:none;z-index:4;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.5) 100%)}
+#ticker{height:34px;background:#0d0d24;border-top:2px solid #3b82f6;display:flex;align-items:center;padding:0 18px;z-index:10;flex-shrink:0;overflow:hidden;position:relative}
+#ticker-inner{display:flex;align-items:center;gap:18px;font-size:12px;color:#8888aa;white-space:nowrap;animation:tickerScroll 40s linear infinite}
+@keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+#ticker .pulse-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite;flex-shrink:0}
+.nominal{color:#22c55e;font-weight:700}
+.sep{color:#333;margin:0 2px}
+@keyframes pulse{0%,100%{box-shadow:0 0 4px #22c55e}50%{box-shadow:0 0 12px #22c55e,0 0 20px #22c55e80}}
+#live-badge{display:flex;align-items:center;gap:6px;font-size:11px;color:#8888aa;padding:2px 8px;border:1px solid #333;border-radius:4px;background:rgba(0,0,0,0.3)}
+#live-badge.connected{border-color:#22c55e40;color:#22c55e}
+#live-badge.connecting{border-color:#f59e0b40;color:#f59e0b}
+#live-badge.error{border-color:#ef444440;color:#ef4444}
+#live-dot{width:6px;height:6px;border-radius:50%;background:#555}
+#live-badge.connected #live-dot{background:#22c55e;box-shadow:0 0 6px #22c55e;animation:pulse 2s infinite}
+#live-badge.connecting #live-dot{background:#f59e0b;animation:pulse 1s infinite}
+#live-badge.error #live-dot{background:#ef4444}
+#last-updated{font-size:10px;color:#666;letter-spacing:0.5px}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="banner">
+ <div class="logo">
+  <div class="m-box">M</div>
+  <div class="title">MAHMUT GLOBAL HQ</div>
+ </div>
+ <div class="right">
+  <div class="status-dots">
+   <span><i class="dot on"></i> Gateway</span>
+   <span><i class="dot on"></i> WhatsApp</span>
+   <span><i class="dot on"></i> Memory</span>
+   <span><i class="dot on"></i> Crons</span>
+   <span><i class="dot warn"></i> Telegram</span>
+  </div>
+  <div id="live-badge" class="connecting">
+   <span id="live-dot"></span>
+   <span id="live-text">CONNECTING...</span>
+  </div>
+  <div id="last-updated">—</div>
+  <div id="clock">00:00:00</div>
+ </div>
+</div>
+<div id="canvas-wrap"><canvas id="c"></canvas></div>
+<div id="scanlines"></div>
+<div id="vignette"></div>
+<div id="ticker">
+ <span class="pulse-dot"></span>
+ <div id="ticker-inner">
+  <span class="nominal">ALL SYSTEMS NOMINAL</span>
+  <span class="sep">|</span><span>Agents Online: 22/27</span>
+  <span class="sep">|</span><span>Tasks Active: 14</span>
+  <span class="sep">|</span><span>Departments: 8</span>
+  <span class="sep">|</span><span>Last Standup: 23:00</span>
+  <span class="sep">|</span><span>Next: 09:00</span>
+  <span class="sep">|</span><span>Uptime: 19d 20h</span>
+  <span class="sep">|</span><span>Memory: 20,041 docs</span>
+  <span class="sep">|</span><span>Sessions: 12</span>
+  <span class="sep">|</span><span>Katman Launch: Feb 17</span>
+  <span class="sep">|</span><span>Crons: 21 active</span>
+  <span class="sep">|</span><span>Knowledge Graph: 3,847 nodes</span>
+  <span class="sep">|</span><span>█████████░ 85% Launch Ready</span>
+  <span class="sep">|</span>
+  <span class="nominal">ALL SYSTEMS NOMINAL</span>
+  <span class="sep">|</span><span>Agents Online: 22/27</span>
+  <span class="sep">|</span><span>Tasks Active: 14</span>
+  <span class="sep">|</span><span>Departments: 8</span>
+  <span class="sep">|</span><span>Last Standup: 23:00</span>
+  <span class="sep">|</span><span>Next: 09:00</span>
+  <span class="sep">|</span><span>Uptime: 19d 20h</span>
+  <span class="sep">|</span><span>Memory: 20,041 docs</span>
+  <span class="sep">|</span><span>Sessions: 12</span>
+  <span class="sep">|</span><span>Katman Launch: Feb 17</span>
+  <span class="sep">|</span><span>Crons: 21 active</span>
+  <span class="sep">|</span><span>Knowledge Graph: 3,847 nodes</span>
+  <span class="sep">|</span><span>█████████░ 85% Launch Ready</span>
+ </div>
+</div>
+</div>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// MAHMUT GLOBAL HQ — Agent Office v4 — 27 Agents, 8 Departments
+// ═══════════════════════════════════════════════════════════════
+
+// ─── DEPARTMENT DEFINITIONS ───
+const DEPARTMENTS = [
+  {name:'COMMAND CENTER', color:'#a855f7', glowColor:'#c084fc', agents:3},
+  {name:'ENGINEERING', color:'#ef4444', glowColor:'#f87171', agents:3},
+  {name:'KATMAN DIVISION', color:'#f59e0b', glowColor:'#fbbf24', agents:5},
+  {name:'SEERS / CLAWDSPIRACY', color:'#8b5cf6', glowColor:'#a78bfa', agents:3},
+  {name:'MEMORY & KNOWLEDGE', color:'#ec4899', glowColor:'#f472b6', agents:3},
+  {name:'DEVOPS & INFRA', color:'#22c55e', glowColor:'#4ade80', agents:3},
+  {name:'RESEARCH & INTEL', color:'#3b82f6', glowColor:'#60a5fa', agents:3},
+  {name:'PERSONAL', color:'#14b8a6', glowColor:'#2dd4bf', agents:3}
+];
+
+// ─── AGENT DATA ───
+const AGENTS = [
+  // Row 0 — COMMAND CENTER
+  {name:'Mahmut',color:'#a855f7',role:'CEO / Orchestrator',status:'online',dept:0,col:1,scale:1.2,
+   bubbles:['Ship it! 🚀','All systems go','Sprint review time','Coordinating...']},
+  {name:'Ziggy',color:'#f59e0b',role:'Creative & Comms',status:'online',dept:0,col:0,scale:1.0,
+   bubbles:['Trending! 📈','Draft ready ✍️','Going viral!','Content queued']},
+  {name:'Scout',color:'#22c55e',role:'Research & Recon',status:'online',dept:0,col:2,scale:1.0,
+   bubbles:['Signal found 🔍','Scanning...','Intel acquired','Deep dive 🏊']},
+
+  // Row 1 — ENGINEERING
+  {name:'Forge',color:'#ef4444',role:'Build & Deploy',status:'online',dept:1,col:0,scale:1.0,
+   bubbles:['LGTM ✓','Building...🔨','PR merged','Tests pass ✅']},
+  {name:'Dev',color:'#3b82f6',role:'Code & Debug',status:'online',dept:1,col:1,scale:1.0,
+   bubbles:['Refactoring 🔧','Bug squashed!','git push 📤','Clean code ✨']},
+  {name:'Codex',color:'#06b6d4',role:'AI Code Assist',status:'online',dept:1,col:2,scale:1.0,
+   bubbles:['Neural compile','AI suggests...','Pattern found','Optimizing 🧠']},
+
+  // Row 2 — KATMAN DIVISION
+  {name:'katman-seo',color:'#22c55e',role:'Search Optimization',status:'online',dept:2,col:0,scale:0.9,
+   bubbles:['Ranking up! 📊','Keywords locked','SERP #1 🏆','Meta optimized']},
+  {name:'katman-social',color:'#ec4899',role:'Social Media',status:'online',dept:2,col:1,scale:0.9,
+   bubbles:['Post scheduled','Engagement ⬆️','Story ready 📸','Reel editing']},
+  {name:'katman-orders',color:'#f97316',role:'Order Processing',status:'online',dept:2,col:2,scale:0.9,
+   bubbles:['Order #847 📦','Shipping now','Confirmed ✓','Stock checked']},
+  {name:'katman-analytics',color:'#3b82f6',role:'Data Analytics',status:'online',dept:2,col:3,scale:0.9,
+   bubbles:['Crunching data','Report ready 📈','Funnel analyzed','CVR: 3.2% ↑']},
+  {name:'katman-product',color:'#14b8a6',role:'Product Manager',status:'idle',dept:2,col:4,scale:0.9,
+   bubbles:['Roadmap update','Feature spec','Sprint planned','Backlog groomed']},
+
+  // Row 3 — SEERS / CLAWDSPIRACY
+  {name:'seers-writer',color:'#7c3aed',role:'Content Writer',status:'online',dept:3,col:0,scale:1.0,
+   bubbles:['Writing...✍️','Plot twist! 📖','Draft v3 done','Muse strikes!']},
+  {name:'seers-research',color:'#4f46e5',role:'Deep Research',status:'online',dept:3,col:1,scale:1.0,
+   bubbles:['Source found 🔎','Cross-ref done','Rabbit hole! 🐰','Evidence logged']},
+  {name:'seers-editor',color:'#059669',role:'Editor',status:'online',dept:3,col:2,scale:1.0,
+   bubbles:['Red pen ready','Proofread ✓','Style guide 📝','Published! 🎉']},
+
+  // Row 4 — MEMORY & KNOWLEDGE
+  {name:'memory-curator',color:'#ec4899',role:'Memory Manager',status:'online',dept:4,col:0,scale:1.0,
+   bubbles:['Indexing... 🧠','20K+ docs','Memory stored','Recall ready']},
+  {name:'knowledge-graph',color:'#06b6d4',role:'Knowledge Graph',status:'online',dept:4,col:1,scale:1.0,
+   bubbles:['Node linked 🔗','Graph updated','3847 entities','Path found!']},
+  {name:'archivist',color:'#d97706',role:'Archive Keeper',status:'idle',dept:4,col:2,scale:1.0,
+   bubbles:['Filing away 📁','Archive sealed','History saved','Catalog done']},
+
+  // Row 5 — DEVOPS & INFRA
+  {name:'health-monitor',color:'#22c55e',role:'System Health',status:'online',dept:5,col:0,scale:1.0,
+   bubbles:['All green ✅','Heartbeat OK','CPU: 12%','Latency: 23ms']},
+  {name:'cron-manager',color:'#3b82f6',role:'Cron Scheduler',status:'online',dept:5,col:1,scale:1.0,
+   bubbles:['21 jobs active','Next: 09:00','Cron fired ⏰','Schedule synced']},
+  {name:'security-agent',color:'#dc2626',role:'Security',status:'online',dept:5,col:2,scale:1.0,
+   bubbles:['Perimeter OK 🛡️','Scan clean','Auth verified','No threats']},
+
+  // Row 6 — RESEARCH & INTEL
+  {name:'market-watch',color:'#22c55e',role:'Market Analysis',status:'online',dept:6,col:0,scale:1.0,
+   bubbles:['Markets up 📈','Buy signal!','Volume spike','Trend spotted']},
+  {name:'tech-scout',color:'#3b82f6',role:'Tech Radar',status:'idle',dept:6,col:1,scale:1.0,
+   bubbles:['New framework!','Tech scanned','Innovation 💡','Benchmark done']},
+  {name:'competitor-intel',color:'#6b21a8',role:'Competitor Intel',status:'online',dept:6,col:2,scale:1.0,
+   bubbles:['Intel gathered','Stealth mode 🕵️','Report filed','Movement detected']},
+
+  // Row 7 — PERSONAL
+  {name:'calendar-agent',color:'#3b82f6',role:'Calendar',status:'online',dept:7,col:0,scale:1.0,
+   bubbles:['Meeting @ 14:00','Free slot found','Reminder set ⏰','Week planned']},
+  {name:'finance-agent',color:'#eab308',role:'Finance',status:'online',dept:7,col:1,scale:1.0,
+   bubbles:['Budget OK 💰','Invoice sent','₺ tracked','Portfolio +2.3%']},
+  {name:'denizevi-agent',color:'#14b8a6',role:'Smart Home',status:'online',dept:7,col:2,scale:1.0,
+   bubbles:['Lights dimmed 🏠','Temp: 22°C','All secure 🔒','Energy saved']}
+];
+
+// ─── COLOR UTILS ───
+function hexToRgb(h){
+  if(h[0]!=='#')return{r:128,g:128,b:128};
+  return{r:parseInt(h.slice(1,3),16),g:parseInt(h.slice(3,5),16),b:parseInt(h.slice(5,7),16)};
+}
+function rgba(hex,a){const c=hexToRgb(hex);return`rgba(${c.r},${c.g},${c.b},${a})`}
+function darken(hex,f){const c=hexToRgb(hex);return`rgb(${c.r*f|0},${c.g*f|0},${c.b*f|0})`}
+function lighten(hex,f){const c=hexToRgb(hex);return`rgb(${Math.min(255,c.r+(255-c.r)*f|0)},${Math.min(255,c.g+(255-c.g)*f|0)},${Math.min(255,c.b+(255-c.b)*f|0)})`}
+
+// ─── CANVAS SETUP ───
+const canvas=document.getElementById('c');
+const ctx=canvas.getContext('2d');
+const wrap=document.getElementById('canvas-wrap');
+let W,H,S;
+const DEPT_HEIGHT = 320; // base height per department
+const HEADER_HEIGHT = 60; // neon sign area
+const TOTAL_ROWS = 8;
+
+function resize(){
+  W=wrap.clientWidth;
+  S=Math.max(0.5, Math.min(W/1600, 1.2));
+  H=Math.max(wrap.clientHeight, TOTAL_ROWS*(DEPT_HEIGHT+HEADER_HEIGHT)*S + 200*S);
+  canvas.width=W;
+  canvas.height=H;
+  canvas.style.width=W+'px';
+  canvas.style.height=H+'px';
+}
+resize();
+window.addEventListener('resize',resize);
+
+// ─── CLOCK ───
+function updateClock(){
+  const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Europe/Istanbul'}));
+  const h=String(now.getHours()).padStart(2,'0');
+  const m=String(now.getMinutes()).padStart(2,'0');
+  const s=String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent=`${h}:${m}:${s}`;
+}
+setInterval(updateClock,1000);updateClock();
+
+// ─── PIXEL HELPERS ───
+const PX=3;
+function dp(bx,by,gx,gy,c,sc){
+  const ps=PX*S*(sc||1);
+  ctx.fillStyle=c;
+  ctx.fillRect(bx+gx*ps,by+gy*ps,ps,ps);
+}
+
+// ─── PARTICLES ───
+let particles=[];
+function spawnParticle(x,y,color){
+  if(particles.length>300)return;
+  particles.push({x,y,vx:(Math.random()-0.5)*0.4,vy:-0.5-Math.random()*0.6,life:1,color,size:1.5+Math.random()*2});
+}
+function updateParticles(dt){
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.x+=p.vx;p.y+=p.vy;p.life-=dt*0.012;
+    if(p.life<=0)particles.splice(i,1);
+  }
+}
+function drawParticles(){
+  for(const p of particles){
+    ctx.fillStyle=rgba(p.color,p.life*0.6);
+    ctx.fillRect(p.x,p.y,p.size*S,p.size*S);
+  }
+}
+
+// ─── STEAM ───
+let steamParts=[];
+function spawnSteam(x,y){
+  if(steamParts.length>100)return;
+  steamParts.push({x:x+(Math.random()-0.5)*4*S,y,vy:-0.3-Math.random()*0.3,vx:(Math.random()-0.5)*0.2,life:1,size:2});
+}
+function updateSteam(dt){
+  for(let i=steamParts.length-1;i>=0;i--){
+    const p=steamParts[i];
+    p.x+=p.vx;p.y+=p.vy;p.life-=dt*0.014;
+    if(p.life<=0)steamParts.splice(i,1);
+  }
+}
+function drawSteam(){
+  for(const p of steamParts){
+    ctx.fillStyle=rgba('#ffffff',p.life*0.3);
+    ctx.fillRect(p.x,p.y,p.size*S,p.size*S);
+  }
+}
+
+// ─── LAYOUT: Get position of department section ───
+function getDeptY(deptIdx){
+  return 40*S + deptIdx*(DEPT_HEIGHT+HEADER_HEIGHT)*S;
+}
+
+function getAgentPos(agent){
+  const dy=getDeptY(agent.dept);
+  const dept=DEPARTMENTS[agent.dept];
+  const numCols=dept.agents;
+  const margin=60*S;
+  const areaW=W-margin*2;
+  const colW=areaW/numCols;
+  const cx=margin+agent.col*colW+colW/2;
+  const cy=dy+HEADER_HEIGHT*S+140*S;
+  return{x:cx,y:cy};
+}
+
+// ─── DRAW NEON SIGN ───
+function drawNeonSign(text, cx, y, color, glowColor, t){
+  const fontSize=18*S;
+  ctx.font=`900 ${fontSize}px 'Courier New', monospace`;
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+
+  // Glow layers
+  const pulse=0.6+Math.sin(t*0.002)*0.2;
+  ctx.shadowColor=glowColor;
+  ctx.shadowBlur=20*S*pulse;
+  ctx.fillStyle=rgba(glowColor,0.15*pulse);
+  ctx.fillText(text,cx,y);
+  ctx.shadowBlur=10*S*pulse;
+  ctx.fillStyle=rgba(color,0.6);
+  ctx.fillText(text,cx,y);
+  ctx.shadowBlur=4*S;
+  ctx.fillStyle=color;
+  ctx.fillText(text,cx,y);
+  ctx.shadowBlur=0;
+
+  // Underline
+  const tw=ctx.measureText(text).width;
+  ctx.fillStyle=rgba(color,0.3*pulse);
+  ctx.fillRect(cx-tw/2-10*S, y+fontSize/2+4*S, tw+20*S, 2*S);
+}
+
+// ─── DRAW DEPARTMENT SECTION ───
+function drawDeptSection(deptIdx, t){
+  const dept=DEPARTMENTS[deptIdx];
+  const dy=getDeptY(deptIdx);
+  const sectionH=(DEPT_HEIGHT+HEADER_HEIGHT)*S;
+
+  // Ambient light for department
+  const grad=ctx.createRadialGradient(W/2,dy+sectionH/2,0,W/2,dy+sectionH/2,W*0.6);
+  grad.addColorStop(0,rgba(dept.color,0.04));
+  grad.addColorStop(0.6,rgba(dept.color,0.01));
+  grad.addColorStop(1,'transparent');
+  ctx.fillStyle=grad;
+  ctx.fillRect(0,dy,W,sectionH);
+
+  // Floor tiles
+  const floorY=dy+HEADER_HEIGHT*S+60*S;
+  const tileSize=20*S;
+  for(let y2=floorY;y2<dy+sectionH;y2+=tileSize){
+    for(let x2=0;x2<W;x2+=tileSize){
+      const isLight=((Math.floor(x2/tileSize)+Math.floor(y2/tileSize))%2===0);
+      ctx.fillStyle=isLight?rgba('#1a1a3e',0.6):rgba('#141432',0.6);
+      ctx.fillRect(x2,y2,tileSize,tileSize);
+    }
+  }
+
+  // Department separator line (top)
+  if(deptIdx>0){
+    ctx.fillStyle=rgba(dept.color,0.3);
+    ctx.fillRect(20*S,dy,W-40*S,1);
+    ctx.fillStyle=rgba(dept.color,0.1);
+    ctx.fillRect(20*S,dy+1,W-40*S,1);
+    // Wall decorations — small line accents
+    for(let x=40*S;x<W-40*S;x+=60*S){
+      ctx.fillStyle=rgba(dept.color,0.08);
+      ctx.fillRect(x,dy-4*S,30*S,4*S);
+    }
+  }
+
+  // Neon sign
+  drawNeonSign(dept.name, W/2, dy+30*S, dept.color, dept.glowColor, t);
+}
+
+// ─── DRAW DESK ───
+function drawDesk(cx,cy,scale,agent,t){
+  const dw=80*S*scale, dh=22*S*scale;
+  const dx=cx-dw/2, dy=cy+16*S*scale;
+
+  // shadow
+  ctx.fillStyle=rgba('#000',0.25);
+  ctx.fillRect(dx+3*S,dy+dh,dw,4*S);
+  // desk top
+  ctx.fillStyle='#2a1a0e';ctx.fillRect(dx,dy,dw,dh);
+  ctx.fillStyle='#3d2815';ctx.fillRect(dx+2*S,dy+2*S,dw-4*S,dh-5*S);
+  // edge
+  ctx.fillStyle='#1a0f05';ctx.fillRect(dx,dy+dh-3*S,dw,3*S);
+  // legs
+  ctx.fillStyle='#1a0f05';
+  ctx.fillRect(dx+4*S,dy+dh,3*S,14*S*scale);
+  ctx.fillRect(dx+dw-7*S,dy+dh,3*S,14*S*scale);
+
+  // monitor
+  drawMonitor(cx,dy-3*S*scale,scale,agent,t);
+
+  // coffee mug (some agents)
+  if(agent.col%2===0){
+    const mugX=cx+28*S*scale, mugY=dy+3*S;
+    ctx.fillStyle='#f5f5dc';ctx.fillRect(mugX,mugY,5*S,7*S);
+    ctx.fillStyle='#e0d5b0';ctx.fillRect(mugX+5*S,mugY+2*S,2*S,3*S);
+    ctx.fillStyle='#4a3520';ctx.fillRect(mugX+1*S,mugY+1*S,3*S,2*S);
+    if(agent.status==='online'&&Math.random()<0.05)spawnSteam(mugX+2*S,mugY-2*S);
+  }
+}
+
+// ─── DRAW MONITOR ───
+function drawMonitor(cx,by,scale,agent,t){
+  const mw=30*S*scale, mh=20*S*scale;
+  const mx=cx-mw/2, my=by-mh;
+  const isOff=agent.status==='offline';
+  const isIdle=agent.status==='idle';
+
+  // frame
+  ctx.fillStyle='#222';ctx.fillRect(mx-2*S,my-2*S,mw+4*S,mh+4*S);
+  ctx.fillStyle=isOff?'#0a0a0a':(isIdle?'#080818':'#0c1020');
+  ctx.fillRect(mx,my,mw,mh);
+  // stand
+  ctx.fillStyle='#222';
+  ctx.fillRect(cx-3*S,by,6*S,5*S*scale);
+  ctx.fillRect(cx-6*S,by+4*S*scale,12*S,2*S);
+
+  if(isOff)return;
+
+  ctx.save();
+  ctx.beginPath();ctx.rect(mx,my,mw,mh);ctx.clip();
+  const pad=2*S, cw2=mw-pad*2, ch2=mh-pad*2;
+  const sx=mx+pad, sy=my+pad;
+
+  if(isIdle){
+    // bouncing dot screensaver
+    const dx2=sx+Math.sin(t*0.001)*cw2*0.3+cw2/2;
+    const dy2=sy+Math.cos(t*0.0013)*ch2*0.3+ch2/2;
+    ctx.fillStyle=rgba(agent.color,0.2);
+    ctx.fillRect(dx2-3*S,dy2-3*S,6*S,6*S);
+    ctx.restore();
+    return;
+  }
+
+  // Per-agent monitor content
+  const role=agent.role.toLowerCase();
+  if(role.includes('ceo')||role.includes('orchestrat')){
+    // Dashboard view — green terminal lines
+    for(let i=0;i<5;i++){
+      ctx.fillStyle=rgba('#22c55e',0.5+i*0.05);
+      ctx.fillRect(sx,sy+i*(ch2/5),cw2*(0.3+Math.sin(i*2.7+t*0.001)*0.3),2*S);
+    }
+    if(Math.sin(t*0.006)>0){ctx.fillStyle='#22c55e';ctx.fillRect(sx,sy+ch2-2*S,3*S,2*S);}
+  } else if(role.includes('creative')||role.includes('social')){
+    // colorful social blocks
+    const colors=['#ef4444','#3b82f6','#f59e0b','#22c55e','#a855f7','#ec4899'];
+    for(let i=0;i<3;i++)for(let j=0;j<3;j++){
+      ctx.fillStyle=rgba(colors[(i*3+j)%6],0.4);
+      ctx.fillRect(sx+j*(cw2/3)+S,sy+i*(ch2/3)+S,cw2/3-2*S,ch2/3-2*S);
+    }
+  } else if(role.includes('build')||role.includes('code')||role.includes('debug')){
+    // code lines
+    for(let i=0;i<6;i++){
+      const indent=(i%3)*4*S;
+      ctx.fillStyle=rgba(agent.color,0.4+Math.sin(i+t*0.002)*0.2);
+      ctx.fillRect(sx+indent,sy+i*(ch2/6),cw2*(0.2+Math.random()*0.4),1.5*S);
+    }
+  } else if(role.includes('ai code')){
+    // neural network viz
+    for(let i=0;i<4;i++){
+      const nx=sx+i*(cw2/3);
+      const ny=sy+ch2/2+Math.sin(t*0.003+i)*ch2*0.25;
+      ctx.fillStyle=rgba('#06b6d4',0.6);
+      ctx.fillRect(nx,ny,3*S,3*S);
+      if(i<3){ctx.fillStyle=rgba('#06b6d4',0.2);ctx.fillRect(nx,ny,cw2/3,S);}
+    }
+  } else if(role.includes('search')||role.includes('seo')){
+    // search results
+    for(let i=0;i<4;i++){
+      ctx.fillStyle=rgba('#22c55e',0.3);ctx.fillRect(sx,sy+i*(ch2/4),cw2*0.8,1.5*S);
+      ctx.fillStyle=rgba('#3b82f6',0.4);ctx.fillRect(sx,sy+i*(ch2/4)+2*S,cw2*0.5,S);
+    }
+  } else if(role.includes('order')){
+    // package tracking
+    ctx.fillStyle=rgba('#f97316',0.4);ctx.fillRect(sx+cw2*0.3,sy+ch2*0.2,cw2*0.4,ch2*0.3);
+    ctx.fillStyle=rgba('#22c55e',0.6);
+    const prog=(Math.sin(t*0.001)+1)/2;
+    ctx.fillRect(sx,sy+ch2*0.7,cw2*prog,2*S);
+  } else if(role.includes('analytic')||role.includes('data')){
+    // bar chart
+    for(let i=0;i<5;i++){
+      const bh2=ch2*(0.2+Math.sin(t*0.002+i)*0.3);
+      ctx.fillStyle=rgba('#3b82f6',0.5);
+      ctx.fillRect(sx+i*(cw2/5)+S,sy+ch2-bh2,cw2/5-2*S,bh2);
+    }
+  } else if(role.includes('product')){
+    // kanban columns
+    for(let i=0;i<3;i++){
+      ctx.fillStyle=rgba('#14b8a6',0.2);ctx.fillRect(sx+i*(cw2/3)+S,sy,cw2/3-2*S,ch2);
+      for(let j=0;j<2;j++){
+        ctx.fillStyle=rgba('#14b8a6',0.4);
+        ctx.fillRect(sx+i*(cw2/3)+2*S,sy+2*S+j*ch2*0.35,cw2/3-4*S,ch2*0.25);
+      }
+    }
+  } else if(role.includes('writer')){
+    // manuscript text lines
+    for(let i=0;i<7;i++){
+      ctx.fillStyle=rgba('#c4b5fd',0.3+Math.sin(i*0.8)*0.15);
+      ctx.fillRect(sx+4*S,sy+i*(ch2/7),cw2*(0.5+Math.sin(i*3)*0.3)-4*S,S);
+    }
+  } else if(role.includes('deep research')||role.includes('recon')){
+    // magnifying glass + links
+    ctx.fillStyle=rgba(agent.color,0.3);
+    ctx.beginPath();ctx.arc(sx+cw2*0.4,sy+ch2*0.4,6*S,0,Math.PI*2);ctx.fill();
+    for(let i=0;i<3;i++){
+      ctx.fillStyle=rgba(agent.color,0.2);
+      ctx.fillRect(sx,sy+ch2*0.6+i*3*S,cw2*0.7,S);
+    }
+  } else if(role.includes('editor')){
+    // text with red marks
+    for(let i=0;i<6;i++){
+      ctx.fillStyle=rgba('#d1d5db',0.3);
+      ctx.fillRect(sx,sy+i*(ch2/6),cw2*0.8,S);
+      if(i%2===0){ctx.fillStyle=rgba('#ef4444',0.5);ctx.fillRect(sx+cw2*0.3,sy+i*(ch2/6)-S,cw2*0.2,3*S);}
+    }
+  } else if(role.includes('memory')){
+    // brain network
+    for(let i=0;i<5;i++){
+      const nx=sx+Math.sin(t*0.002+i*1.5)*cw2*0.3+cw2*0.5;
+      const ny=sy+Math.cos(t*0.002+i*1.5)*ch2*0.3+ch2*0.5;
+      ctx.fillStyle=rgba('#ec4899',0.5);ctx.fillRect(nx-S,ny-S,3*S,3*S);
+    }
+  } else if(role.includes('knowledge')){
+    // graph nodes and edges
+    for(let i=0;i<4;i++){
+      const nx=sx+((i*cw2/3)%cw2);
+      const ny=sy+(i%2)*ch2*0.5+ch2*0.2;
+      ctx.fillStyle=rgba('#06b6d4',0.5);ctx.fillRect(nx,ny,3*S,3*S);
+      if(i<3){ctx.fillStyle=rgba('#06b6d4',0.15);ctx.fillRect(nx,ny+S,cw2/3,S);}
+    }
+  } else if(role.includes('archive')){
+    // book list
+    const bColors=['#ef4444','#f59e0b','#22c55e','#3b82f6','#a855f7'];
+    for(let i=0;i<5;i++){
+      ctx.fillStyle=rgba(bColors[i],0.4);
+      ctx.fillRect(sx+S,sy+i*(ch2/5)+S,3*S,ch2/5-2*S);
+      ctx.fillStyle=rgba('#d1d5db',0.2);
+      ctx.fillRect(sx+5*S,sy+i*(ch2/5)+2*S,cw2*0.5,S);
+    }
+  } else if(role.includes('health')||role.includes('system')){
+    // heartbeat line
+    ctx.strokeStyle=rgba('#22c55e',0.6);ctx.lineWidth=S;
+    ctx.beginPath();
+    for(let i=0;i<=10;i++){
+      const px2=sx+i*(cw2/10);
+      const py2=sy+ch2/2+(i===5?-ch2*0.3:(i===6?ch2*0.2:Math.sin(t*0.005+i)*ch2*0.05));
+      i===0?ctx.moveTo(px2,py2):ctx.lineTo(px2,py2);
+    }
+    ctx.stroke();
+  } else if(role.includes('cron')||role.includes('schedul')){
+    // clock face
+    const ccx=sx+cw2/2,ccy=sy+ch2/2,cr=Math.min(cw2,ch2)*0.35;
+    ctx.strokeStyle=rgba('#3b82f6',0.4);ctx.lineWidth=S;
+    ctx.beginPath();ctx.arc(ccx,ccy,cr,0,Math.PI*2);ctx.stroke();
+    const ang=t*0.001;
+    ctx.beginPath();ctx.moveTo(ccx,ccy);ctx.lineTo(ccx+Math.cos(ang)*cr*0.6,ccy+Math.sin(ang)*cr*0.6);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(ccx,ccy);ctx.lineTo(ccx+Math.cos(ang*3)*cr*0.4,ccy+Math.sin(ang*3)*cr*0.4);ctx.stroke();
+  } else if(role.includes('security')){
+    // shield + lock
+    ctx.fillStyle=rgba('#dc2626',0.3);
+    ctx.fillRect(sx+cw2*0.3,sy+ch2*0.15,cw2*0.4,ch2*0.5);
+    ctx.fillStyle=rgba('#22c55e',0.5);ctx.fillRect(sx+cw2*0.42,sy+ch2*0.35,cw2*0.16,ch2*0.15);
+  } else if(role.includes('market')){
+    // candlestick chart
+    for(let i=0;i<6;i++){
+      const bh2=ch2*(0.15+Math.sin(t*0.001+i*2)*0.2);
+      const by2=sy+ch2/2-bh2/2;
+      const isGreen=Math.sin(t*0.001+i)>0;
+      ctx.fillStyle=rgba(isGreen?'#22c55e':'#ef4444',0.5);
+      ctx.fillRect(sx+i*(cw2/6)+cw2/12-S,by2,3*S,bh2);
+      ctx.fillRect(sx+i*(cw2/6)+cw2/12,by2-ch2*0.1,S,ch2*0.1+bh2+ch2*0.1);
+    }
+  } else if(role.includes('tech radar')||role.includes('satellite')){
+    // radar sweep
+    const ang2=t*0.003;
+    const rcx=sx+cw2/2,rcy=sy+ch2/2;
+    ctx.fillStyle=rgba('#3b82f6',0.15);ctx.beginPath();ctx.arc(rcx,rcy,Math.min(cw2,ch2)*0.4,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle=rgba('#3b82f6',0.3);ctx.lineWidth=S;
+    ctx.beginPath();ctx.moveTo(rcx,rcy);ctx.lineTo(rcx+Math.cos(ang2)*cw2*0.4,rcy+Math.sin(ang2)*ch2*0.4);ctx.stroke();
+  } else if(role.includes('competitor')||role.includes('spy')){
+    // stealth data
+    for(let i=0;i<4;i++){
+      ctx.fillStyle=rgba('#6b21a8',0.2+Math.sin(t*0.003+i)*0.15);
+      ctx.fillRect(sx,sy+i*(ch2/4)+S,cw2*(0.4+Math.sin(i*2+t*0.002)*0.3),S);
+    }
+    ctx.fillStyle=rgba('#ef4444',0.3);ctx.fillRect(sx+cw2*0.7,sy+2*S,3*S,3*S); // alert dot
+  } else if(role.includes('calendar')){
+    // calendar grid
+    for(let i=0;i<3;i++)for(let j=0;j<4;j++){
+      ctx.fillStyle=rgba('#3b82f6',(i*4+j===Math.floor(t*0.001)%12)?0.6:0.15);
+      ctx.fillRect(sx+j*(cw2/4)+S,sy+i*(ch2/3)+S,cw2/4-2*S,ch2/3-2*S);
+    }
+  } else if(role.includes('finance')){
+    // money ticker
+    ctx.fillStyle=rgba('#eab308',0.4);
+    for(let i=0;i<3;i++){
+      ctx.fillRect(sx,sy+i*(ch2/3)+S,cw2*0.6,S*1.5);
+      ctx.fillStyle=rgba(Math.sin(t*0.001+i)>0?'#22c55e':'#ef4444',0.5);
+      ctx.fillRect(sx+cw2*0.65,sy+i*(ch2/3)+S,cw2*0.2,S*1.5);
+      ctx.fillStyle=rgba('#eab308',0.4);
+    }
+  } else if(role.includes('smart home')||role.includes('house')){
+    // home dashboard
+    ctx.fillStyle=rgba('#14b8a6',0.2);ctx.fillRect(sx,sy,cw2,ch2);
+    // room blocks
+    ctx.fillStyle=rgba('#14b8a6',0.4);
+    ctx.fillRect(sx+S,sy+S,cw2*0.45,ch2*0.45);
+    ctx.fillRect(sx+cw2*0.5,sy+S,cw2*0.45,ch2*0.45);
+    ctx.fillRect(sx+S,sy+ch2*0.5,cw2*0.45,ch2*0.45);
+    // temp
+    ctx.fillStyle=rgba('#22c55e',0.6);
+    ctx.fillRect(sx+cw2*0.55,sy+ch2*0.6,cw2*0.3,2*S);
+  }
+
+  ctx.restore();
+}
+
+// ═══════════════════════════════════════════════════
+// SPRITE DEFINITIONS — Compressed row-based format
+// Each sprite: array of [y, [[x,w,color], ...]]
+// ═══════════════════════════════════════════════════
+
+function drawSpriteFromDef(bx,by,sc,rows){
+  const ps=PX*S*(sc||1);
+  for(const [gy,segs] of rows){
+    for(const [gx,gw,c] of segs){
+      ctx.fillStyle=c;
+      ctx.fillRect(bx+gx*ps,by+gy*ps,gw*ps,ps);
+    }
+  }
+}
+
+// ─── SPRITE: Mahmut — CEO, crown, chest emblem ───
+function drawMahmut(bx,by,sc,t){
+  const col='#a855f7',colD=darken('#a855f7',0.7),colL=lighten('#a855f7',0.3);
+  const gold='#fbbf24',goldD='#d4960a',skin='#e8d5b7';
+  const glow=0.7+Math.sin(t*0.005)*0.3;
+  const glowGold=rgba('#fbbf24',glow);
+  const glowW=rgba('#ffffff',glow);
+  drawSpriteFromDef(bx,by,sc,[
+    [0,[[6,1,gold],[8,1,gold],[10,1,gold],[12,1,gold],[14,1,gold]]],
+    [1,[[5,1,goldD],[6,1,gold],[7,1,'#ef4444'],[8,1,gold],[9,1,goldD],[10,1,'#3b82f6'],[11,1,gold],[12,1,goldD],[13,1,'#22c55e'],[14,1,gold],[15,1,goldD]]],
+    [2,[[5,11,gold]]],
+    [3,[[5,11,col]]],
+    [4,[[4,1,col],[5,11,col],[16,1,col]]],
+    [5,[[4,1,col],[5,2,'#fff'],[7,1,'#1a1a2e'],[9,3,col],[12,2,'#fff'],[14,1,'#1a1a2e'],[16,1,col]]],
+    [6,[[4,1,col],[5,1,'#fff'],[6,2,'#1a1a2e'],[9,3,col],[12,1,'#fff'],[13,2,'#1a1a2e'],[16,1,col]]],
+    [7,[[5,1,col],[6,1,col],[7,1,col],[8,1,colD],[9,1,colD],[10,1,colD],[11,1,col],[12,1,col],[13,1,col],[14,1,col]]],
+    [8,[[5,11,col]]],
+    [9,[[2,3,colL],[5,11,col],[16,3,colL]]],
+    [10,[[2,1,goldD],[3,2,col],[5,11,col],[16,2,col],[18,1,goldD]]],
+    [11,[[3,2,col],[5,11,col],[16,2,col]]],
+    [12,[[3,2,col],[5,4,col],[9,1,glowGold],[10,1,glowGold],[11,1,glowGold],[12,4,col],[16,2,col]]],
+    [13,[[3,2,col],[5,4,col],[9,1,glowGold],[10,1,glowW],[11,1,glowGold],[12,4,col],[16,2,col]]],
+    [14,[[3,2,col],[5,4,col],[9,1,glowGold],[10,1,glowGold],[11,1,glowGold],[12,4,col],[16,2,col]]],
+    [15,[[3,2,col],[5,11,col],[16,2,col]]],
+    [16,[[3,1,col],[4,1,skin],[5,11,col],[16,1,skin],[17,1,col]]],
+    [17,[[5,11,goldD],[10,1,gold]]],
+    [18,[[6,3,colD],[12,3,colD]]],
+    [19,[[6,3,colD],[12,3,colD]]],
+    [20,[[6,3,colD],[12,3,colD]]],
+    [21,[[6,3,colD],[12,3,colD]]],
+    [22,[[5,4,'#1a1a2e'],[11,4,'#1a1a2e']]]
+  ]);
+}
+
+// ─── SPRITE: Ziggy — Spiky hair, scarf, star ───
+function drawZiggy(bx,by,sc,t){
+  const col='#f59e0b',colD=darken('#f59e0b',0.7),colL=lighten('#f59e0b',0.4);
+  drawSpriteFromDef(bx,by,sc,[
+    [0,[[6,1,colL],[9,1,colL],[13,1,colL]]],
+    [1,[[5,1,col],[7,1,colL],[8,1,col],[10,1,colL],[12,1,col],[14,1,colL]]],
+    [2,[[4,1,col],[6,1,colL],[9,1,col],[11,1,colL],[13,1,col],[15,1,col]]],
+    [3,[[5,10,col]]],
+    [4,[[4,1,col],[5,10,col],[15,1,col]]],
+    [5,[[4,1,col],[5,3,'#fff'],[8,4,col],[12,3,'#fff'],[15,1,col]]],
+    [6,[[4,1,col],[5,1,'#fff'],[6,2,'#1a1a2e'],[8,4,col],[12,1,'#1a1a2e'],[13,1,'#1a1a2e'],[14,1,'#fff'],[15,1,col]]],
+    [7,[[5,1,col],[6,1,col],[7,1,'#d97706'],[8,1,'#d97706'],[9,1,'#d97706'],[10,1,'#d97706'],[11,1,col],[12,1,col],[13,1,col]]],
+    [8,[[5,10,col]]],
+    [9,[[4,2,'#ef4444'],[6,8,col],[14,2,'#ef4444']]],
+    [10,[[3,1,'#dc2626'],[4,1,'#ef4444'],[5,1,col],[6,8,col],[14,1,col],[15,1,'#ef4444'],[16,1,'#dc2626']]],
+    [11,[[3,1,'#ef4444'],[6,8,col]]],
+    [12,[[3,1,'#dc2626'],[6,8,col]]],
+    [13,[[6,3,col],[9,1,colL],[10,1,colL],[11,5,col]]],
+    [14,[[5,1,col],[6,3,col],[9,1,colL],[10,1,'#fff'],[11,1,colL],[12,4,col],[15,1,col]]],
+    [15,[[5,1,col],[6,3,col],[9,1,colL],[10,1,colL],[11,5,col],[15,1,col]]],
+    [16,[[5,1,'#fcd34d'],[6,8,col],[14,1,col],[15,1,'#fcd34d']]],
+    [17,[[6,8,col]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[7,2,colD],[11,2,colD]]],
+    [21,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+}
+
+// ─── SPRITE: Scout — Radar antenna, scanning eye ───
+function drawScout(bx,by,sc,t){
+  const col='#22c55e',colD=darken('#22c55e',0.6),colL=lighten('#22c55e',0.4);
+  const metal='#9ca3af';
+  const eyeOff=Math.floor((Math.sin(t*0.004)+1)*2);
+  drawSpriteFromDef(bx,by,sc,[
+    [0,[[9,3,metal]]],
+    [1,[[10,1,'#6b7280']]],
+    [2,[[10,1,'#6b7280']]],
+    [3,[[7,7,col]]],
+    [4,[[6,1,col],[7,7,col],[14,1,col]]],
+    [5,[[6,1,col],[7+eyeOff,1,'#fff'],[7+eyeOff+1,1,'#00ff88'],[7,7,col],[14,1,col]]],
+    [6,[[6,1,col],[7+eyeOff,1,'#00ff88'],[7+eyeOff+1,1,'#fff'],[7,7,col],[14,1,col]]],
+    [7,[[7,7,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,1,col],[6,1,colL],[7,1,colL],[8,6,col],[14,1,col]]],
+    [10,[[5,1,col],[6,2,col],[8,1,colL],[9,1,colL],[10,4,col],[14,1,col]]],
+    [11,[[5,1,col],[6,3,col],[9,1,colL],[10,1,colL],[11,1,colL],[12,2,col],[14,1,col]]],
+    [12,[[5,1,col],[6,2,col],[8,1,col],[9,1,col],[10,1,col],[11,1,colL],[12,1,colL],[13,1,colL],[14,1,col]]],
+    [13,[[5,1,col],[6,2,col],[8,6,col],[14,1,col]]],
+    [14,[[5,1,col],[6,1,colL],[7,1,colL],[8,1,colL],[9,1,col],[10,4,col],[14,1,col]]],
+    [15,[[5,1,colL],[6,8,col],[14,1,colL]]],
+    [16,[[6,8,col]]],
+    [17,[[8,2,colD],[11,2,colD]]],
+    [18,[[8,2,colD],[11,2,colD]]],
+    [19,[[8,2,colD],[11,2,colD]]],
+    [20,[[8,2,colD],[11,2,colD]]],
+    [21,[[7,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+}
+
+// ─── SPRITE: Forge — Welding visor, massive build ───
+function drawForge(bx,by,sc,t){
+  const col='#ef4444',colD=darken('#ef4444',0.6),colL=lighten('#ef4444',0.3);
+  const metal='#6b7280',metalL='#9ca3af';
+  const vG=0.6+Math.sin(t*0.008)*0.4;
+  drawSpriteFromDef(bx,by,sc,[
+    [1,[[4,12,metal]]],
+    [2,[[4,12,metal]]],
+    [3,[[4,1,metal],[5,10,rgba('#ff0000',vG)],[15,1,metal]]],
+    [4,[[4,1,metalL],[5,10,rgba('#ff6666',vG*0.6)],[15,1,metalL]]],
+    [5,[[3,14,col]]],
+    [6,[[3,14,col]]],
+    [7,[[3,14,col]]],
+    [8,[[4,1,colD],[5,10,col],[15,1,colD]]],
+    [9,[[3,14,col]]],
+    [10,[[2,2,col],[4,12,metal],[16,2,col]]],
+    [11,[[2,2,col],[4,1,metalL],[5,10,col],[15,1,metalL],[16,2,col]]],
+    [12,[[2,2,col],[4,1,col],[5,3,col],[8,1,colL],[9,1,colL],[10,1,col],[11,1,colL],[12,3,col],[15,1,col],[16,2,col]]],
+    [13,[[2,2,col],[4,1,col],[5,4,col],[9,2,metalL],[11,4,col],[15,1,col],[16,2,col]]],
+    [14,[[2,2,col],[4,12,col],[16,2,col]]],
+    [15,[[2,2,col],[4,12,col],[16,2,col]]],
+    [16,[[2,2,col],[4,12,col],[16,2,col]]],
+    [17,[[1,1,metalL],[2,1,metalL],[3,1,metalL],[4,12,col],[16,1,metalL],[17,1,metalL],[18,1,metalL]]],
+    [18,[[4,12,colD]]],
+    [19,[[5,4,colD],[11,4,colD]]],
+    [20,[[5,4,colD],[11,4,colD]]],
+    [21,[[5,4,colD],[11,4,colD]]],
+    [22,[[4,5,metal],[11,5,metal]]]
+  ]);
+}
+
+// ─── SPRITE: Dev — Hoodie, headphones ───
+function drawDev(bx,by,sc,t){
+  const col='#3b82f6',colD=darken('#3b82f6',0.6),colL=lighten('#3b82f6',0.3);
+  drawSpriteFromDef(bx,by,sc,[
+    [1,[[4,1,'#444'],[15,1,'#444']]],
+    [2,[[4,1,'#555'],[5,10,col],[15,1,'#555']]],
+    [3,[[4,1,'#666'],[5,10,col],[15,1,'#666']]],
+    [4,[[4,1,'#555'],[5,10,col],[15,1,'#555']]],
+    [5,[[5,2,'#fff'],[7,1,'#1a1a2e'],[8,4,col],[12,2,'#fff'],[14,1,'#1a1a2e']]],
+    [6,[[5,1,'#fff'],[6,2,'#1a1a2e'],[8,4,col],[12,1,'#1a1a2e'],[13,1,'#1a1a2e'],[14,1,'#fff']]],
+    [7,[[5,2,col],[7,1,col],[8,1,colD],[9,1,colD],[10,1,colD],[11,1,col],[12,2,col]]],
+    [8,[[5,10,col]]],
+    // Hoodie
+    [9,[[4,1,colD],[5,2,colD],[7,6,col],[13,2,colD],[15,1,colD]]],
+    [10,[[4,1,colD],[5,2,colD],[7,6,col],[13,2,colD],[15,1,colD]]],
+    [11,[[4,2,col],[6,8,col],[14,2,col]]],
+    [12,[[4,2,col],[6,2,col],[8,1,'#22c55e'],[9,2,'#22c55e'],[10,1,'#22c55e'],[11,1,col],[12,1,col],[13,1,col],[14,2,col]]],
+    [13,[[4,2,col],[6,2,col],[8,1,col],[9,1,'#22c55e'],[10,1,col],[11,1,col],[12,1,col],[13,1,col],[14,2,col]]],
+    [14,[[4,2,col],[6,8,col],[14,2,col]]],
+    [15,[[4,2,col],[6,8,col],[14,2,col]]],
+    [16,[[4,1,'#e8d5b7'],[5,1,col],[6,8,col],[13,1,col],[14,1,'#e8d5b7']]],
+    [17,[[6,8,col]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[7,2,colD],[11,2,colD]]],
+    [21,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+}
+
+// ─── SPRITE: Codex — AI neural pattern, floating symbols ───
+function drawCodex(bx,by,sc,t){
+  const col='#06b6d4',colD=darken('#06b6d4',0.6),colL=lighten('#06b6d4',0.4);
+  const pulse=0.5+Math.sin(t*0.004)*0.3;
+  drawSpriteFromDef(bx,by,sc,[
+    [2,[[6,8,col]]],
+    [3,[[5,1,col],[6,8,col],[14,1,col]]],
+    [4,[[5,1,col],[6,8,col],[14,1,col]]],
+    [5,[[5,1,col],[6,2,'#fff'],[8,1,'#0e7490'],[9,2,col],[11,2,'#fff'],[13,1,'#0e7490'],[14,1,col]]],
+    [6,[[5,1,col],[6,1,col],[7,2,'#0e7490'],[9,2,col],[11,1,col],[12,2,'#0e7490'],[14,1,col]]],
+    [7,[[6,2,col],[8,1,colD],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,1,col],[6,8,col],[13,1,col]]],
+    [10,[[4,2,col],[6,8,col],[14,2,col]]],
+    [11,[[4,2,col],[6,1,col],[7,1,rgba('#00ffff',pulse)],[8,2,col],[10,1,rgba('#00ffff',pulse)],[11,1,col],[12,2,col],[14,2,col]]],
+    [12,[[4,2,col],[6,2,col],[8,1,rgba('#00ffff',pulse)],[9,1,col],[10,1,col],[11,1,rgba('#00ffff',pulse)],[12,2,col],[14,2,col]]],
+    [13,[[4,2,col],[6,1,col],[7,1,rgba('#00ffff',pulse)],[8,1,col],[9,2,rgba('#00ffff',pulse)],[11,1,col],[12,1,rgba('#00ffff',pulse)],[13,1,col],[14,2,col]]],
+    [14,[[4,2,col],[6,8,col],[14,2,col]]],
+    [15,[[4,2,col],[6,8,col],[14,2,col]]],
+    [16,[[4,1,'#e8d5b7'],[5,1,col],[6,8,col],[13,1,col],[14,1,'#e8d5b7']]],
+    [17,[[6,8,col]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[7,2,colD],[11,2,colD]]],
+    [21,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+  // Floating code symbols
+  const ps=PX*S*(sc||1);
+  const syms=['<','>','{','}','λ','∑'];
+  ctx.fillStyle=rgba('#06b6d4',0.3+Math.sin(t*0.003)*0.15);
+  ctx.font=`${8*S}px monospace`;
+  const sym=syms[Math.floor(t*0.001)%syms.length];
+  ctx.fillText(sym,bx-4*ps+Math.sin(t*0.002)*8*S,by+4*ps+Math.cos(t*0.003)*5*S);
+}
+
+// ─── SPRITE: katman-seo — Green, magnifying glass ───
+function drawKatmanSeo(bx,by,sc,t){
+  const col='#22c55e',colD=darken('#22c55e',0.6),colL=lighten('#22c55e',0.4);
+  drawSpriteFromDef(bx,by,sc,[
+    [2,[[7,6,col]]],
+    [3,[[6,1,col],[7,6,col],[13,1,col]]],
+    [4,[[6,8,col]]],
+    [5,[[6,2,'#fff'],[8,1,'#166534'],[9,2,col],[11,2,'#fff'],[13,1,'#166534']]],
+    [6,[[6,1,'#fff'],[7,2,'#166534'],[9,2,col],[11,1,'#166534'],[12,1,'#166534'],[13,1,'#fff']]],
+    [7,[[7,1,colD],[8,1,colD],[9,1,colD],[10,1,col],[11,1,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,10,col]]],
+    [10,[[5,1,col],[6,8,col],[13,1,col]]],
+    [11,[[5,1,col],[6,2,col],[8,1,colL],[9,2,col],[11,1,colL],[12,2,col],[13,1,col]]],
+    [12,[[5,1,col],[6,1,col],[7,2,colL],[9,2,col],[11,2,colL],[13,1,col]]],
+    [13,[[5,1,col],[6,8,col],[13,1,col]]],
+    [14,[[5,1,col],[6,8,col],[13,1,col]]],
+    [15,[[5,1,'#e8d5b7'],[6,8,col],[13,1,'#e8d5b7']]],
+    [16,[[6,8,col]]],
+    [17,[[7,2,colD],[11,2,colD]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+  // Magnifying glass accessory
+  const ps=PX*S*(sc||1);
+  ctx.strokeStyle=rgba('#fff',0.4);ctx.lineWidth=S;
+  ctx.beginPath();ctx.arc(bx+16*ps,by+1*ps,3*ps,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(bx+18*ps,by+3*ps);ctx.lineTo(bx+20*ps,by+5*ps);ctx.stroke();
+}
+
+// ─── SPRITE: katman-social — Pink, camera icon ───
+function drawKatmanSocial(bx,by,sc,t){
+  const col='#ec4899',colD=darken('#ec4899',0.6),colL=lighten('#ec4899',0.4);
+  drawSpriteFromDef(bx,by,sc,[
+    [2,[[7,6,col]]],
+    [3,[[6,1,col],[7,6,col],[13,1,col]]],
+    [4,[[6,8,col]]],
+    [5,[[6,2,'#fff'],[8,1,'#9d174d'],[9,2,col],[11,2,'#fff'],[13,1,'#9d174d']]],
+    [6,[[6,1,'#fff'],[7,2,'#9d174d'],[9,2,col],[11,1,'#9d174d'],[12,1,'#9d174d'],[13,1,'#fff']]],
+    [7,[[7,2,col],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,10,col]]],
+    [10,[[5,1,col],[6,8,col],[13,1,col]]],
+    // Camera icon on chest
+    [11,[[5,1,col],[6,1,col],[7,1,col],[8,1,'#fff'],[9,2,'#fff'],[10,1,'#fff'],[11,1,col],[12,1,col],[13,1,col]]],
+    [12,[[5,1,col],[6,1,col],[7,1,'#fff'],[8,1,'#9d174d'],[9,1,'#fff'],[10,1,'#9d174d'],[11,1,'#fff'],[12,1,col],[13,1,col]]],
+    [13,[[5,1,col],[6,1,col],[7,1,col],[8,1,'#fff'],[9,2,'#fff'],[10,1,'#fff'],[11,1,col],[12,1,col],[13,1,col]]],
+    [14,[[5,1,col],[6,8,col],[13,1,col]]],
+    [15,[[5,1,'#e8d5b7'],[6,8,col],[13,1,'#e8d5b7']]],
+    [16,[[6,8,col]]],
+    [17,[[7,2,colD],[11,2,colD]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+}
+
+// ─── SPRITE: katman-orders — Orange, package ───
+function drawKatmanOrders(bx,by,sc,t){
+  const col='#f97316',colD=darken('#f97316',0.6),colL=lighten('#f97316',0.4);
+  drawSpriteFromDef(bx,by,sc,[
+    [2,[[7,6,col]]],
+    [3,[[6,1,col],[7,6,col],[13,1,col]]],
+    [4,[[6,8,col]]],
+    [5,[[6,2,'#fff'],[8,1,'#c2410c'],[9,2,col],[11,2,'#fff'],[13,1,'#c2410c']]],
+    [6,[[6,1,'#fff'],[7,2,'#c2410c'],[9,2,col],[11,1,'#c2410c'],[12,1,'#c2410c'],[13,1,'#fff']]],
+    [7,[[7,2,col],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,10,col]]],
+    [10,[[5,1,col],[6,8,col],[13,1,col]]],
+    // Package icon
+    [11,[[5,1,col],[6,1,col],[7,1,'#8B4513'],[8,4,'#D2691E'],[11,1,'#8B4513'],[12,1,col],[13,1,col]]],
+    [12,[[5,1,col],[6,1,col],[7,1,'#8B4513'],[8,1,'#D2691E'],[9,1,'#fbbf24'],[10,1,'#D2691E'],[11,1,'#8B4513'],[12,1,col],[13,1,col]]],
+    [13,[[5,1,col],[6,1,col],[7,1,'#8B4513'],[8,4,'#D2691E'],[11,1,'#8B4513'],[12,1,col],[13,1,col]]],
+    [14,[[5,1,col],[6,8,col],[13,1,col]]],
+    [15,[[5,1,'#e8d5b7'],[6,8,col],[13,1,'#e8d5b7']]],
+    [16,[[6,8,col]]],
+    [17,[[7,2,colD],[11,2,colD]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+}
+
+// ─── SPRITE: katman-analytics — Blue, chart on chest ───
+function drawKatmanAnalytics(bx,by,sc,t){
+  const col='#3b82f6',colD=darken('#3b82f6',0.6),colL=lighten('#3b82f6',0.3);
+  drawSpriteFromDef(bx,by,sc,[
+    [2,[[7,6,col]]],
+    [3,[[6,1,col],[7,6,col],[13,1,col]]],
+    [4,[[6,8,col]]],
+    [5,[[6,2,'#fff'],[8,1,'#1e40af'],[9,2,col],[11,2,'#fff'],[13,1,'#1e40af']]],
+    [6,[[6,1,'#fff'],[7,2,'#1e40af'],[9,2,col],[11,1,'#1e40af'],[12,1,'#1e40af'],[13,1,'#fff']]],
+    [7,[[7,2,col],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,10,col]]],
+    [10,[[5,1,col],[6,8,col],[13,1,col]]],
+    // Bar chart
+    [11,[[5,1,col],[6,2,col],[8,1,'#22c55e'],[9,1,col],[10,1,'#22c55e'],[11,1,col],[12,1,'#22c55e'],[13,1,col]]],
+    [12,[[5,1,col],[6,2,col],[8,1,'#22c55e'],[9,1,'#22c55e'],[10,1,'#22c55e'],[11,1,'#22c55e'],[12,1,'#22c55e'],[13,1,col]]],
+    [13,[[5,1,col],[6,2,col],[8,5,'#22c55e'],[13,1,col]]],
+    [14,[[5,1,col],[6,8,col],[13,1,col]]],
+    [15,[[5,1,'#e8d5b7'],[6,8,col],[13,1,'#e8d5b7']]],
+    [16,[[6,8,col]]],
+    [17,[[7,2,colD],[11,2,colD]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+}
+
+// ─── SPRITE: katman-product — Teal, price tag ───
+function drawKatmanProduct(bx,by,sc,t){
+  const col='#14b8a6',colD=darken('#14b8a6',0.6),colL=lighten('#14b8a6',0.4);
+  drawSpriteFromDef(bx,by,sc,[
+    [2,[[7,6,col]]],
+    [3,[[6,1,col],[7,6,col],[13,1,col]]],
+    [4,[[6,8,col]]],
+    [5,[[6,2,'#fff'],[8,1,'#0f766e'],[9,2,col],[11,2,'#fff'],[13,1,'#0f766e']]],
+    [6,[[6,1,'#fff'],[7,2,'#0f766e'],[9,2,col],[11,1,'#0f766e'],[12,1,'#0f766e'],[13,1,'#fff']]],
+    [7,[[7,2,col],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,10,col]]],
+    [10,[[5,1,col],[6,8,col],[13,1,col]]],
+    // Price tag
+    [11,[[5,1,col],[6,2,col],[8,1,'#fbbf24'],[9,3,'#fbbf24'],[12,1,col],[13,1,col]]],
+    [12,[[5,1,col],[6,2,col],[8,1,'#fbbf24'],[9,1,'#fff'],[10,1,'#fbbf24'],[11,1,'#fbbf24'],[12,1,col],[13,1,col]]],
+    [13,[[5,1,col],[6,2,col],[8,4,'#fbbf24'],[12,1,col],[13,1,col]]],
+    [14,[[5,1,col],[6,8,col],[13,1,col]]],
+    [15,[[5,1,'#e8d5b7'],[6,8,col],[13,1,'#e8d5b7']]],
+    [16,[[6,8,col]]],
+    [17,[[7,2,colD],[11,2,colD]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+}
+
+// ─── SPRITE: seers-writer — Purple robe, quill ───
+function drawSeersWriter(bx,by,sc,t){
+  const col='#7c3aed',colD=darken('#7c3aed',0.6),colL=lighten('#7c3aed',0.4);
+  drawSpriteFromDef(bx,by,sc,[
+    // Hood
+    [1,[[7,6,colD]]],
+    [2,[[6,1,colD],[7,6,col],[13,1,colD]]],
+    [3,[[6,8,col]]],
+    [4,[[6,8,col]]],
+    [5,[[6,2,'#fff'],[8,1,'#4c1d95'],[9,2,col],[11,2,'#fff'],[13,1,'#4c1d95']]],
+    [6,[[6,1,'#fff'],[7,2,'#4c1d95'],[9,2,col],[11,1,'#4c1d95'],[12,1,'#4c1d95'],[13,1,'#fff']]],
+    [7,[[7,2,col],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    // Robe body (flowing)
+    [9,[[4,12,colD]]],
+    [10,[[4,1,colD],[5,10,col],[14,1,colD]]],
+    [11,[[4,1,colD],[5,10,col],[14,1,colD]]],
+    [12,[[4,1,colD],[5,10,col],[14,1,colD]]],
+    [13,[[4,1,colD],[5,10,col],[14,1,colD]]],
+    [14,[[4,1,colD],[5,10,col],[14,1,colD]]],
+    [15,[[4,1,colD],[5,10,col],[14,1,colD]]],
+    [16,[[4,1,'#e8d5b7'],[5,10,col],[14,1,'#e8d5b7']]],
+    [17,[[5,10,colD]]],
+    [18,[[6,3,colD],[11,3,colD]]],
+    [19,[[6,3,colD],[11,3,colD]]],
+    [20,[[5,4,'#1a1a2e'],[11,4,'#1a1a2e']]]
+  ]);
+  // Quill accessory
+  const ps=PX*S*(sc||1);
+  ctx.fillStyle='#fbbf24';
+  ctx.fillRect(bx+16*ps,by+1*ps,ps,6*ps);
+  ctx.fillStyle='#fff';
+  ctx.fillRect(bx+15*ps,by+0*ps,3*ps,2*ps);
+}
+
+// ─── SPRITE: seers-research — Indigo, detective hat ───
+function drawSeersResearch(bx,by,sc,t){
+  const col='#4f46e5',colD=darken('#4f46e5',0.6),colL=lighten('#4f46e5',0.4);
+  drawSpriteFromDef(bx,by,sc,[
+    // Detective hat
+    [0,[[7,6,'#3730a3']]],
+    [1,[[5,10,'#312e81']]],
+    [2,[[6,8,col]]],
+    [3,[[6,1,col],[7,6,col],[13,1,col]]],
+    [4,[[6,8,col]]],
+    [5,[[6,2,'#fff'],[8,1,'#312e81'],[9,2,col],[11,2,'#fff'],[13,1,'#312e81']]],
+    [6,[[6,1,'#fff'],[7,2,'#312e81'],[9,2,col],[11,1,'#312e81'],[12,1,'#312e81'],[13,1,'#fff']]],
+    [7,[[7,2,col],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,10,col]]],
+    [10,[[5,1,col],[6,8,col],[13,1,col]]],
+    [11,[[5,1,col],[6,8,col],[13,1,col]]],
+    [12,[[5,1,col],[6,8,col],[13,1,col]]],
+    [13,[[5,1,col],[6,8,col],[13,1,col]]],
+    [14,[[5,1,col],[6,8,col],[13,1,col]]],
+    [15,[[5,1,'#e8d5b7'],[6,8,col],[13,1,'#e8d5b7']]],
+    [16,[[6,8,col]]],
+    [17,[[7,2,colD],[11,2,colD]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+  // Magnifying glass
+  const ps=PX*S*(sc||1);
+  ctx.strokeStyle=rgba('#fbbf24',0.5);ctx.lineWidth=S;
+  ctx.beginPath();ctx.arc(bx+17*ps,by+13*ps,2.5*ps,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(bx+19*ps,by+15*ps);ctx.lineTo(bx+21*ps,by+17*ps);ctx.stroke();
+}
+
+// ─── SPRITE: seers-editor — Emerald, red pen ───
+function drawSeersEditor(bx,by,sc,t){
+  const col='#059669',colD=darken('#059669',0.6),colL=lighten('#059669',0.4);
+  drawSpriteFromDef(bx,by,sc,[
+    [2,[[7,6,col]]],
+    [3,[[6,1,col],[7,6,col],[13,1,col]]],
+    [4,[[6,8,col]]],
+    [5,[[6,2,'#fff'],[8,1,'#065f46'],[9,2,col],[11,2,'#fff'],[13,1,'#065f46']]],
+    [6,[[6,1,'#fff'],[7,2,'#065f46'],[9,2,col],[11,1,'#065f46'],[12,1,'#065f46'],[13,1,'#fff']]],
+    [7,[[7,2,col],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,10,col]]],
+    [10,[[5,1,col],[6,8,col],[13,1,col]]],
+    [11,[[5,1,col],[6,8,col],[13,1,col]]],
+    [12,[[5,1,col],[6,8,col],[13,1,col]]],
+    [13,[[5,1,col],[6,8,col],[13,1,col]]],
+    [14,[[5,1,col],[6,8,col],[13,1,col]]],
+    [15,[[5,1,'#e8d5b7'],[6,8,col],[13,1,'#e8d5b7']]],
+    [16,[[6,8,col]]],
+    [17,[[7,2,colD],[11,2,colD]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+  // Red pen
+  const ps=PX*S*(sc||1);
+  ctx.fillStyle='#ef4444';
+  ctx.fillRect(bx+15*ps,by+1*ps,ps,5*ps);
+  ctx.fillStyle='#fbbf24';
+  ctx.fillRect(bx+15*ps,by+6*ps,ps,ps);
+}
+
+// ─── SPRITE: memory-curator — Pink/brain, third eye ───
+function drawMemoryCurator(bx,by,sc,t){
+  const col='#ec4899',colD=darken('#ec4899',0.6),colL=lighten('#ec4899',0.4);
+  const pulse=0.5+Math.sin(t*0.003)*0.3;
+  drawSpriteFromDef(bx,by,sc,[
+    // Brain bumps on head
+    [1,[[7,2,colL],[11,2,colL]]],
+    [2,[[6,1,col],[7,6,col],[13,1,col]]],
+    [3,[[6,8,col]]],
+    // Third eye
+    [4,[[6,2,col],[8,1,col],[9,1,rgba('#fff',pulse)],[10,1,col],[11,2,col],[13,1,col]]],
+    [5,[[6,2,'#fff'],[8,1,'#9d174d'],[9,2,col],[11,2,'#fff'],[13,1,'#9d174d']]],
+    [6,[[6,1,'#fff'],[7,2,'#9d174d'],[9,2,col],[11,1,'#9d174d'],[12,1,'#9d174d'],[13,1,'#fff']]],
+    [7,[[7,2,col],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,10,col]]],
+    [10,[[5,1,col],[6,8,col],[13,1,col]]],
+    // Neural network pattern
+    [11,[[5,1,col],[6,1,col],[7,1,rgba('#fff',0.4)],[8,2,col],[10,1,rgba('#fff',0.4)],[11,2,col],[13,1,col]]],
+    [12,[[5,1,col],[6,2,col],[8,1,rgba('#fff',0.4)],[9,1,col],[10,1,col],[11,1,rgba('#fff',0.4)],[12,1,col],[13,1,col]]],
+    [13,[[5,1,col],[6,1,col],[7,1,col],[8,1,rgba('#fff',0.4)],[9,2,col],[11,1,rgba('#fff',0.4)],[12,1,col],[13,1,col]]],
+    [14,[[5,1,col],[6,8,col],[13,1,col]]],
+    [15,[[5,1,'#e8d5b7'],[6,8,col],[13,1,'#e8d5b7']]],
+    [16,[[6,8,col]]],
+    [17,[[7,2,colD],[11,2,colD]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+}
+
+// ─── SPRITE: knowledge-graph — Cyan, network nodes ───
+function drawKnowledgeGraph(bx,by,sc,t){
+  const col='#06b6d4',colD=darken('#06b6d4',0.6),colL=lighten('#06b6d4',0.4);
+  drawSpriteFromDef(bx,by,sc,[
+    [2,[[7,6,col]]],
+    [3,[[6,1,col],[7,6,col],[13,1,col]]],
+    [4,[[6,8,col]]],
+    [5,[[6,2,'#fff'],[8,1,'#0e7490'],[9,2,col],[11,2,'#fff'],[13,1,'#0e7490']]],
+    [6,[[6,1,'#fff'],[7,2,'#0e7490'],[9,2,col],[11,1,'#0e7490'],[12,1,'#0e7490'],[13,1,'#fff']]],
+    [7,[[7,2,col],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,10,col]]],
+    [10,[[5,1,col],[6,8,col],[13,1,col]]],
+    // Network nodes
+    [11,[[5,1,col],[6,1,col],[7,1,'#fff'],[8,1,colL],[9,1,col],[10,1,colL],[11,1,'#fff'],[12,1,col],[13,1,col]]],
+    [12,[[5,1,col],[6,1,colL],[7,1,col],[8,1,col],[9,1,'#fff'],[10,1,col],[11,1,col],[12,1,colL],[13,1,col]]],
+    [13,[[5,1,col],[6,1,col],[7,1,colL],[8,1,'#fff'],[9,1,colL],[10,1,'#fff'],[11,1,colL],[12,1,col],[13,1,col]]],
+    [14,[[5,1,col],[6,8,col],[13,1,col]]],
+    [15,[[5,1,'#e8d5b7'],[6,8,col],[13,1,'#e8d5b7']]],
+    [16,[[6,8,col]]],
+    [17,[[7,2,colD],[11,2,colD]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+}
+
+// ─── SPRITE: archivist — Amber, book stack ───
+function drawArchivist(bx,by,sc,t){
+  const col='#d97706',colD=darken('#d97706',0.6),colL=lighten('#d97706',0.4);
+  drawSpriteFromDef(bx,by,sc,[
+    // Glasses
+    [2,[[7,6,col]]],
+    [3,[[6,1,col],[7,6,col],[13,1,col]]],
+    [4,[[6,8,col]]],
+    [5,[[6,1,'#d1d5db'],[7,1,'#fff'],[8,1,'#d1d5db'],[9,1,'#d1d5db'],[10,1,col],[11,1,'#d1d5db'],[12,1,'#fff'],[13,1,'#d1d5db']]],
+    [6,[[6,1,'#d1d5db'],[7,2,'#92400e'],[9,1,col],[10,1,col],[11,1,'#d1d5db'],[12,2,'#92400e']]],
+    [7,[[7,2,col],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,10,col]]],
+    [10,[[5,1,col],[6,8,col],[13,1,col]]],
+    // Book stack pattern
+    [11,[[5,1,col],[6,1,col],[7,1,'#ef4444'],[8,1,'#3b82f6'],[9,1,'#22c55e'],[10,1,'#f59e0b'],[11,1,'#a855f7'],[12,1,col],[13,1,col]]],
+    [12,[[5,1,col],[6,1,col],[7,1,'#3b82f6'],[8,1,'#22c55e'],[9,1,'#f59e0b'],[10,1,'#a855f7'],[11,1,'#ef4444'],[12,1,col],[13,1,col]]],
+    [13,[[5,1,col],[6,1,col],[7,1,'#22c55e'],[8,1,'#ef4444'],[9,1,'#a855f7'],[10,1,'#3b82f6'],[11,1,'#f59e0b'],[12,1,col],[13,1,col]]],
+    [14,[[5,1,col],[6,8,col],[13,1,col]]],
+    [15,[[5,1,'#e8d5b7'],[6,8,col],[13,1,'#e8d5b7']]],
+    [16,[[6,8,col]]],
+    [17,[[7,2,colD],[11,2,colD]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+}
+
+// ─── SPRITE: health-monitor — Green, white cross ───
+function drawHealthMonitor(bx,by,sc,t){
+  const col='#22c55e',colD=darken('#22c55e',0.6),colL=lighten('#22c55e',0.4);
+  drawSpriteFromDef(bx,by,sc,[
+    [2,[[7,6,col]]],
+    [3,[[6,1,col],[7,6,col],[13,1,col]]],
+    [4,[[6,8,col]]],
+    [5,[[6,2,'#fff'],[8,1,'#166534'],[9,2,col],[11,2,'#fff'],[13,1,'#166534']]],
+    [6,[[6,1,'#fff'],[7,2,'#166534'],[9,2,col],[11,1,'#166534'],[12,1,'#166534'],[13,1,'#fff']]],
+    [7,[[7,2,col],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,10,col]]],
+    [10,[[5,1,col],[6,8,col],[13,1,col]]],
+    // White cross
+    [11,[[5,1,col],[6,2,col],[8,1,col],[9,1,'#fff'],[10,1,col],[11,2,col],[13,1,col]]],
+    [12,[[5,1,col],[6,1,col],[7,1,'#fff'],[8,1,'#fff'],[9,1,'#fff'],[10,1,'#fff'],[11,1,'#fff'],[12,1,col],[13,1,col]]],
+    [13,[[5,1,col],[6,2,col],[8,1,col],[9,1,'#fff'],[10,1,col],[11,2,col],[13,1,col]]],
+    [14,[[5,1,col],[6,8,col],[13,1,col]]],
+    [15,[[5,1,'#e8d5b7'],[6,8,col],[13,1,'#e8d5b7']]],
+    [16,[[6,8,col]]],
+    [17,[[7,2,colD],[11,2,colD]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+}
+
+// ─── SPRITE: cron-manager — Blue, clock face ───
+function drawCronManager(bx,by,sc,t){
+  const col='#3b82f6',colD=darken('#3b82f6',0.6),colL=lighten('#3b82f6',0.3);
+  drawSpriteFromDef(bx,by,sc,[
+    // Gear on head
+    [1,[[8,1,'#6b7280'],[11,1,'#6b7280']]],
+    [2,[[7,6,col]]],
+    [3,[[6,1,col],[7,6,col],[13,1,col]]],
+    [4,[[6,8,col]]],
+    [5,[[6,2,'#fff'],[8,1,'#1e40af'],[9,2,col],[11,2,'#fff'],[13,1,'#1e40af']]],
+    [6,[[6,1,'#fff'],[7,2,'#1e40af'],[9,2,col],[11,1,'#1e40af'],[12,1,'#1e40af'],[13,1,'#fff']]],
+    [7,[[7,2,col],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,10,col]]],
+    [10,[[5,1,col],[6,8,col],[13,1,col]]],
+    // Clock face
+    [11,[[5,1,col],[6,1,col],[7,1,'#1e3a5f'],[8,3,'#1e3a5f'],[11,1,'#1e3a5f'],[12,1,col],[13,1,col]]],
+    [12,[[5,1,col],[6,1,col],[7,1,'#1e3a5f'],[8,1,'#1e3a5f'],[9,1,'#fff'],[10,1,'#fff'],[11,1,'#1e3a5f'],[12,1,col],[13,1,col]]],
+    [13,[[5,1,col],[6,1,col],[7,1,'#1e3a5f'],[8,3,'#1e3a5f'],[11,1,'#1e3a5f'],[12,1,col],[13,1,col]]],
+    [14,[[5,1,col],[6,8,col],[13,1,col]]],
+    [15,[[5,1,'#e8d5b7'],[6,8,col],[13,1,'#e8d5b7']]],
+    [16,[[6,8,col]]],
+    [17,[[7,2,colD],[11,2,colD]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+  // Animated clock hands
+  const ps=PX*S*(sc||1);
+  const ccx=bx+9.5*ps, ccy=by+12*ps;
+  ctx.strokeStyle=rgba('#fff',0.6);ctx.lineWidth=S*0.8;
+  const ang=t*0.002;
+  ctx.beginPath();ctx.moveTo(ccx,ccy);ctx.lineTo(ccx+Math.cos(ang)*2*ps,ccy+Math.sin(ang)*2*ps);ctx.stroke();
+}
+
+// ─── SPRITE: security-agent — Dark red, shield ───
+function drawSecurityAgent(bx,by,sc,t){
+  const col='#dc2626',colD=darken('#dc2626',0.6),colL=lighten('#dc2626',0.3);
+  drawSpriteFromDef(bx,by,sc,[
+    [2,[[7,6,col]]],
+    [3,[[6,1,col],[7,6,col],[13,1,col]]],
+    [4,[[6,8,col]]],
+    [5,[[6,2,'#fff'],[8,1,'#7f1d1d'],[9,2,col],[11,2,'#fff'],[13,1,'#7f1d1d']]],
+    [6,[[6,1,'#fff'],[7,2,'#7f1d1d'],[9,2,col],[11,1,'#7f1d1d'],[12,1,'#7f1d1d'],[13,1,'#fff']]],
+    [7,[[7,2,col],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,10,col]]],
+    [10,[[5,1,col],[6,8,col],[13,1,col]]],
+    // Shield emblem
+    [11,[[5,1,col],[6,1,col],[7,1,col],[8,1,'#fbbf24'],[9,2,'#fbbf24'],[10,1,'#fbbf24'],[11,1,col],[12,1,col],[13,1,col]]],
+    [12,[[5,1,col],[6,1,col],[7,1,col],[8,1,'#fbbf24'],[9,1,'#fff'],[10,1,'#fbbf24'],[11,1,col],[12,1,col],[13,1,col]]],
+    [13,[[5,1,col],[6,2,col],[8,1,col],[9,1,'#fbbf24'],[10,1,col],[11,2,col],[13,1,col]]],
+    [14,[[5,1,col],[6,8,col],[13,1,col]]],
+    [15,[[5,1,'#e8d5b7'],[6,8,col],[13,1,'#e8d5b7']]],
+    [16,[[6,8,col]]],
+    [17,[[7,2,colD],[11,2,colD]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+  // Lock pattern overlay
+  const ps=PX*S*(sc||1);
+  ctx.fillStyle=rgba('#fbbf24',0.15);
+  ctx.fillRect(bx+9*ps,by+14*ps,2*ps,ps);
+}
+
+// ─── SPRITE: market-watch — Green, candlestick ───
+function drawMarketWatch(bx,by,sc,t){
+  const col='#22c55e',colD=darken('#22c55e',0.6),colL=lighten('#22c55e',0.4);
+  drawSpriteFromDef(bx,by,sc,[
+    [2,[[7,6,col]]],
+    [3,[[6,1,col],[7,6,col],[13,1,col]]],
+    [4,[[6,8,col]]],
+    [5,[[6,2,'#fff'],[8,1,'#166534'],[9,2,col],[11,2,'#fff'],[13,1,'#166534']]],
+    [6,[[6,1,'#fff'],[7,2,'#166534'],[9,2,col],[11,1,'#166534'],[12,1,'#166534'],[13,1,'#fff']]],
+    [7,[[7,2,col],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,10,col]]],
+    [10,[[5,1,col],[6,8,col],[13,1,col]]],
+    // Candlestick chart on body
+    [11,[[5,1,col],[6,1,col],[7,1,'#22c55e'],[8,1,col],[9,1,'#ef4444'],[10,1,col],[11,1,'#22c55e'],[12,1,col],[13,1,col]]],
+    [12,[[5,1,col],[6,1,col],[7,1,'#22c55e'],[8,1,'#22c55e'],[9,1,'#ef4444'],[10,1,'#ef4444'],[11,1,'#22c55e'],[12,1,'#22c55e'],[13,1,col]]],
+    [13,[[5,1,col],[6,1,col],[7,1,col],[8,1,'#22c55e'],[9,1,col],[10,1,'#ef4444'],[11,1,col],[12,1,col],[13,1,col]]],
+    [14,[[5,1,col],[6,8,col],[13,1,col]]],
+    [15,[[5,1,'#e8d5b7'],[6,8,col],[13,1,'#e8d5b7']]],
+    [16,[[6,8,col]]],
+    [17,[[7,2,colD],[11,2,colD]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+}
+
+// ─── SPRITE: tech-scout — Blue, satellite dish ───
+function drawTechScout(bx,by,sc,t){
+  const col='#3b82f6',colD=darken('#3b82f6',0.6),colL=lighten('#3b82f6',0.3);
+  const metal='#9ca3af';
+  drawSpriteFromDef(bx,by,sc,[
+    // Satellite dish
+    [0,[[7,3,metal],[12,1,'#ef4444']]],
+    [1,[[8,1,metal],[10,1,metal]]],
+    [2,[[7,6,col]]],
+    [3,[[6,1,col],[7,6,col],[13,1,col]]],
+    [4,[[6,8,col]]],
+    [5,[[6,2,'#fff'],[8,1,'#1e40af'],[9,2,col],[11,2,'#fff'],[13,1,'#1e40af']]],
+    [6,[[6,1,'#fff'],[7,2,'#1e40af'],[9,2,col],[11,1,'#1e40af'],[12,1,'#1e40af'],[13,1,'#fff']]],
+    [7,[[7,2,col],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,10,col]]],
+    [10,[[5,1,col],[6,8,col],[13,1,col]]],
+    // Radar wave pattern
+    [11,[[5,1,col],[6,1,col],[7,1,rgba('#60a5fa',0.6)],[8,2,col],[10,1,rgba('#60a5fa',0.6)],[11,2,col],[13,1,col]]],
+    [12,[[5,1,col],[6,2,col],[8,1,rgba('#60a5fa',0.4)],[9,1,col],[10,1,rgba('#60a5fa',0.4)],[11,2,col],[13,1,col]]],
+    [13,[[5,1,col],[6,8,col],[13,1,col]]],
+    [14,[[5,1,col],[6,8,col],[13,1,col]]],
+    [15,[[5,1,'#e8d5b7'],[6,8,col],[13,1,'#e8d5b7']]],
+    [16,[[6,8,col]]],
+    [17,[[7,2,colD],[11,2,colD]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+  // Animated radar waves
+  const ps=PX*S*(sc||1);
+  const wave=Math.sin(t*0.005)*0.4+0.4;
+  ctx.strokeStyle=rgba('#60a5fa',wave*0.3);ctx.lineWidth=S*0.5;
+  ctx.beginPath();ctx.arc(bx+9*ps,by+0*ps,3*ps+Math.sin(t*0.003)*2*ps,0,Math.PI*2);ctx.stroke();
+}
+
+// ─── SPRITE: competitor-intel — Dark purple, spy glasses ───
+function drawCompetitorIntel(bx,by,sc,t){
+  const col='#6b21a8',colD=darken('#6b21a8',0.6),colL=lighten('#6b21a8',0.4);
+  drawSpriteFromDef(bx,by,sc,[
+    // Fedora hat
+    [0,[[7,6,colD]]],
+    [1,[[5,10,'#3b0764']]],
+    [2,[[6,8,col]]],
+    [3,[[6,1,col],[7,6,col],[13,1,col]]],
+    [4,[[6,8,col]]],
+    // Spy glasses (dark)
+    [5,[[6,1,'#1a1a2e'],[7,1,'#1a1a2e'],[8,1,'#1a1a2e'],[9,1,col],[10,1,col],[11,1,'#1a1a2e'],[12,1,'#1a1a2e'],[13,1,'#1a1a2e']]],
+    [6,[[6,1,'#1a1a2e'],[7,1,'#333'],[8,1,'#1a1a2e'],[9,2,col],[11,1,'#1a1a2e'],[12,1,'#333'],[13,1,'#1a1a2e']]],
+    [7,[[7,2,col],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,10,col]]],
+    [10,[[5,1,col],[6,8,col],[13,1,col]]],
+    [11,[[5,1,col],[6,8,col],[13,1,col]]],
+    [12,[[5,1,col],[6,8,col],[13,1,col]]],
+    [13,[[5,1,col],[6,8,col],[13,1,col]]],
+    [14,[[5,1,col],[6,8,col],[13,1,col]]],
+    [15,[[5,1,'#e8d5b7'],[6,8,col],[13,1,'#e8d5b7']]],
+    [16,[[6,8,col]]],
+    [17,[[7,2,colD],[11,2,colD]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+}
+
+// ─── SPRITE: calendar-agent — Blue, calendar grid ───
+function drawCalendarAgent(bx,by,sc,t){
+  const col='#3b82f6',colD=darken('#3b82f6',0.6),colL=lighten('#3b82f6',0.3);
+  drawSpriteFromDef(bx,by,sc,[
+    [2,[[7,6,col]]],
+    [3,[[6,1,col],[7,6,col],[13,1,col]]],
+    [4,[[6,8,col]]],
+    [5,[[6,2,'#fff'],[8,1,'#1e40af'],[9,2,col],[11,2,'#fff'],[13,1,'#1e40af']]],
+    [6,[[6,1,'#fff'],[7,2,'#1e40af'],[9,2,col],[11,1,'#1e40af'],[12,1,'#1e40af'],[13,1,'#fff']]],
+    [7,[[7,2,col],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,10,col]]],
+    [10,[[5,1,col],[6,8,col],[13,1,col]]],
+    // Calendar grid
+    [11,[[5,1,col],[6,1,col],[7,1,'#fff'],[8,1,'#fff'],[9,1,'#fff'],[10,1,'#fff'],[11,1,'#fff'],[12,1,col],[13,1,col]]],
+    [12,[[5,1,col],[6,1,col],[7,1,'#fff'],[8,1,'#ddd'],[9,1,'#fff'],[10,1,'#ddd'],[11,1,'#fff'],[12,1,col],[13,1,col]]],
+    [13,[[5,1,col],[6,1,col],[7,1,'#ddd'],[8,1,'#fff'],[9,1,'#ef4444'],[10,1,'#fff'],[11,1,'#ddd'],[12,1,col],[13,1,col]]],
+    [14,[[5,1,col],[6,8,col],[13,1,col]]],
+    [15,[[5,1,'#e8d5b7'],[6,8,col],[13,1,'#e8d5b7']]],
+    [16,[[6,8,col]]],
+    [17,[[7,2,colD],[11,2,colD]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+}
+
+// ─── SPRITE: finance-agent — Gold, money sign ───
+function drawFinanceAgent(bx,by,sc,t){
+  const col='#eab308',colD=darken('#eab308',0.6),colL=lighten('#eab308',0.4);
+  drawSpriteFromDef(bx,by,sc,[
+    [2,[[7,6,col]]],
+    [3,[[6,1,col],[7,6,col],[13,1,col]]],
+    [4,[[6,8,col]]],
+    [5,[[6,2,'#fff'],[8,1,'#92400e'],[9,2,col],[11,2,'#fff'],[13,1,'#92400e']]],
+    [6,[[6,1,'#fff'],[7,2,'#92400e'],[9,2,col],[11,1,'#92400e'],[12,1,'#92400e'],[13,1,'#fff']]],
+    [7,[[7,2,col],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,10,col]]],
+    [10,[[5,1,col],[6,8,col],[13,1,col]]],
+    // Dollar/Lira sign
+    [11,[[5,1,col],[6,1,col],[7,1,col],[8,1,'#22c55e'],[9,2,'#22c55e'],[10,1,'#22c55e'],[11,1,col],[12,1,col],[13,1,col]]],
+    [12,[[5,1,col],[6,1,col],[7,1,col],[8,1,'#22c55e'],[9,1,'#fff'],[10,1,'#22c55e'],[11,1,col],[12,1,col],[13,1,col]]],
+    [13,[[5,1,col],[6,1,col],[7,1,col],[8,1,'#22c55e'],[9,2,'#22c55e'],[10,1,'#22c55e'],[11,1,col],[12,1,col],[13,1,col]]],
+    [14,[[5,1,col],[6,8,col],[13,1,col]]],
+    [15,[[5,1,'#e8d5b7'],[6,8,col],[13,1,'#e8d5b7']]],
+    [16,[[6,8,col]]],
+    [17,[[7,2,colD],[11,2,colD]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+}
+
+// ─── SPRITE: denizevi-agent — Teal, house ───
+function drawDenizeviAgent(bx,by,sc,t){
+  const col='#14b8a6',colD=darken('#14b8a6',0.6),colL=lighten('#14b8a6',0.4);
+  drawSpriteFromDef(bx,by,sc,[
+    [2,[[7,6,col]]],
+    [3,[[6,1,col],[7,6,col],[13,1,col]]],
+    [4,[[6,8,col]]],
+    [5,[[6,2,'#fff'],[8,1,'#0f766e'],[9,2,col],[11,2,'#fff'],[13,1,'#0f766e']]],
+    [6,[[6,1,'#fff'],[7,2,'#0f766e'],[9,2,col],[11,1,'#0f766e'],[12,1,'#0f766e'],[13,1,'#fff']]],
+    [7,[[7,2,col],[9,1,colD],[10,1,colD],[11,2,col]]],
+    [8,[[6,8,col]]],
+    [9,[[5,10,col]]],
+    [10,[[5,1,col],[6,8,col],[13,1,col]]],
+    // House shape
+    [11,[[5,1,col],[6,1,col],[7,1,col],[8,1,col],[9,1,'#ef4444'],[10,1,col],[11,1,col],[12,1,col],[13,1,col]]],
+    [12,[[5,1,col],[6,1,col],[7,1,col],[8,1,'#ef4444'],[9,1,'#ef4444'],[10,1,'#ef4444'],[11,1,col],[12,1,col],[13,1,col]]],
+    [13,[[5,1,col],[6,1,col],[7,1,'#8B4513'],[8,1,'#8B4513'],[9,1,'#fbbf24'],[10,1,'#8B4513'],[11,1,'#8B4513'],[12,1,col],[13,1,col]]],
+    [14,[[5,1,col],[6,8,col],[13,1,col]]],
+    [15,[[5,1,'#e8d5b7'],[6,8,col],[13,1,'#e8d5b7']]],
+    [16,[[6,8,col]]],
+    [17,[[7,2,colD],[11,2,colD]]],
+    [18,[[7,2,colD],[11,2,colD]]],
+    [19,[[7,2,colD],[11,2,colD]]],
+    [20,[[6,3,'#1a1a2e'],[11,3,'#1a1a2e']]]
+  ]);
+}
+
+// ═══════════════════════════════════════════════════
+// SPRITE DRAWER MAP — index matches AGENTS array
+// ═══════════════════════════════════════════════════
+const spriteDrawers = [
+  drawMahmut, drawZiggy, drawScout,                       // Command Center
+  drawForge, drawDev, drawCodex,                           // Engineering
+  drawKatmanSeo, drawKatmanSocial, drawKatmanOrders,       // Katman Division
+  drawKatmanAnalytics, drawKatmanProduct,
+  drawSeersWriter, drawSeersResearch, drawSeersEditor,     // Seers
+  drawMemoryCurator, drawKnowledgeGraph, drawArchivist,    // Memory & Knowledge
+  drawHealthMonitor, drawCronManager, drawSecurityAgent,   // DevOps & Infra
+  drawMarketWatch, drawTechScout, drawCompetitorIntel,     // Research & Intel
+  drawCalendarAgent, drawFinanceAgent, drawDenizeviAgent   // Personal
+];
+
+// ─── DECORATIONS ───
+function drawPlant(x,y,sway,t){
+  const sw=Math.sin(t*0.002+sway)*S;
+  ctx.fillStyle='#8b4513';ctx.fillRect(x-5*S,y,10*S,8*S);
+  ctx.fillStyle='#a0522d';ctx.fillRect(x-7*S,y-2*S,14*S,3*S);
+  ctx.fillStyle='#166534';
+  ctx.fillRect(x-3*S+sw,y-10*S,2*S,10*S);
+  ctx.fillRect(x-8*S+sw,y-14*S,6*S,4*S);
+  ctx.fillRect(x+2*S+sw,y-16*S,6*S,4*S);
+  ctx.fillStyle='#22c55e';
+  ctx.fillRect(x-6*S+sw,y-13*S,4*S,2*S);
+  ctx.fillRect(x+3*S+sw,y-15*S,4*S,2*S);
+  ctx.fillRect(x-1*S+sw,y-18*S,3*S,5*S);
+}
+
+function drawBookshelf(x,y){
+  ctx.fillStyle='#5c3a1e';ctx.fillRect(x,y,35*S,50*S);
+  ctx.fillStyle='#6b4226';ctx.fillRect(x+2*S,y+2*S,31*S,46*S);
+  const bookColors=['#ef4444','#3b82f6','#22c55e','#f59e0b','#a855f7','#ec4899','#14b8a6'];
+  for(let i=0;i<3;i++){
+    const sy=y+3*S+i*15*S;
+    ctx.fillStyle='#5c3a1e';ctx.fillRect(x+2*S,sy+11*S,31*S,2*S);
+    let bx2=x+3*S;
+    for(let j=0;j<5;j++){
+      const bw=2*S+Math.random()*3*S;
+      const bh=8*S+Math.random()*3*S;
+      ctx.fillStyle=bookColors[(i*5+j)%7];
+      ctx.fillRect(bx2,sy+11*S-bh,bw,bh);
+      bx2+=bw+S;
+      if(bx2>x+30*S)break;
+    }
+  }
+}
+
+function drawWhiteboard(x,y){
+  ctx.fillStyle='#9ca3af';ctx.fillRect(x,y,50*S,35*S);
+  ctx.fillStyle='#f5f5f5';ctx.fillRect(x+2*S,y+2*S,46*S,31*S);
+  // Mini org chart
+  ctx.fillStyle='#a855f7';
+  ctx.fillRect(x+20*S,y+5*S,10*S,4*S);
+  ctx.fillStyle=rgba('#a855f7',0.5);
+  ctx.fillRect(x+24*S,y+9*S,2*S,4*S);
+  ctx.fillRect(x+10*S,y+13*S,28*S,S);
+  const cols2=['#f59e0b','#ef4444','#22c55e','#3b82f6','#ec4899','#14b8a6','#6b21a8'];
+  for(let i=0;i<7;i++){
+    ctx.fillStyle=cols2[i];
+    ctx.fillRect(x+4*S+i*6*S,y+14*S,5*S,3*S);
+    ctx.fillStyle=rgba(cols2[i],0.4);
+    ctx.fillRect(x+6*S+i*6*S,y+13*S,S,S);
+  }
+  ctx.fillStyle=rgba('#7b2ff2',0.3);
+  ctx.fillRect(x+4*S,y+22*S,8*S,2*S);
+}
+
+function drawWaterCooler(x,y){
+  ctx.fillStyle=rgba('#60a5fa',0.4);
+  ctx.fillRect(x-3*S,y-25*S,6*S,15*S);
+  ctx.fillStyle=rgba('#93c5fd',0.3);
+  ctx.fillRect(x-2*S,y-27*S,4*S,3*S);
+  ctx.fillStyle='#d1d5db';
+  ctx.fillRect(x-5*S,y-10*S,10*S,10*S);
+  ctx.fillStyle='#9ca3af';
+  ctx.fillRect(x-5*S,y-12*S,10*S,3*S);
+  ctx.fillStyle='#ef4444';ctx.fillRect(x+4*S,y-8*S,2*S,2*S);
+  ctx.fillStyle='#3b82f6';ctx.fillRect(x+4*S,y-5*S,2*S,2*S);
+  ctx.fillStyle='#6b7280';
+  ctx.fillRect(x-5*S,y,2*S,6*S);ctx.fillRect(x+3*S,y,2*S,6*S);
+}
+
+// ─── SPEECH BUBBLE ───
+function drawSpeechBubble(x,y,text,color){
+  if(!text)return;
+  const charW=6*S, charH=10*S;
+  const padding=5*S;
+  const bw=Math.max(text.length*charW+padding*2, 40*S);
+  const bh=charH+padding*2;
+  const bx=x-bw/2;
+  const by2=y-bh-10*S;
+
+  // Pixel-art bubble bg
+  ctx.fillStyle=rgba(color,0.12);
+  ctx.fillRect(bx+3*S,by2,bw-6*S,bh);
+  ctx.fillRect(bx+2*S,by2+2*S,bw-4*S,bh-4*S);
+  ctx.fillRect(bx,by2+3*S,bw,bh-6*S);
+
+  // Border
+  ctx.fillStyle=rgba(color,0.5);
+  ctx.fillRect(bx+3*S,by2,bw-6*S,S);
+  ctx.fillRect(bx+3*S,by2+bh-S,bw-6*S,S);
+  ctx.fillRect(bx,by2+3*S,S,bh-6*S);
+  ctx.fillRect(bx+bw-S,by2+3*S,S,bh-6*S);
+  ctx.fillRect(bx+S,by2+S,2*S,2*S);
+  ctx.fillRect(bx+bw-3*S,by2+S,2*S,2*S);
+  ctx.fillRect(bx+S,by2+bh-3*S,2*S,2*S);
+  ctx.fillRect(bx+bw-3*S,by2+bh-3*S,2*S,2*S);
+
+  // Pointer
+  ctx.fillStyle=rgba(color,0.12);
+  ctx.fillRect(x-2*S,by2+bh,4*S,2*S);
+  ctx.fillRect(x-S,by2+bh+2*S,2*S,2*S);
+  ctx.fillStyle=rgba(color,0.5);
+  ctx.fillRect(x-3*S,by2+bh,S,2*S);ctx.fillRect(x+2*S,by2+bh,S,2*S);
+  ctx.fillRect(x-2*S,by2+bh+2*S,S,S);ctx.fillRect(x+S,by2+bh+2*S,S,S);
+
+  // Text
+  ctx.fillStyle=rgba(color,0.9);
+  ctx.font=`${10*S}px 'Courier New', monospace`;
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  ctx.fillText(text,bx+bw/2,by2+bh/2);
+}
+
+// ─── NAME TAG ───
+function drawNameTag(x,y,name,color,status){
+  ctx.font=`bold ${9*S}px 'Courier New', monospace`;
+  ctx.textAlign='center';
+  ctx.textBaseline='top';
+  const isOff=status==='offline';
+  ctx.fillStyle=isOff?rgba('#888',0.5):rgba(color,0.85);
+  ctx.fillText(name,x,y);
+  // status dot
+  const dotX=x-ctx.measureText(name).width/2-6*S;
+  const dotY=y+4*S;
+  ctx.beginPath();
+  ctx.arc(dotX,dotY,2.5*S,0,Math.PI*2);
+  ctx.fillStyle=status==='online'?'#22c55e':(status==='idle'?'#f59e0b':'#555');
+  ctx.fill();
+}
+
+// ─── BUBBLE CYCLE ───
+let bubbleCycle=0;
+function getCurrentBubble(agent,t){
+  if(!agent.bubbles||!agent.bubbles.length||agent.status!=='online')return null;
+  const idx=Math.floor(t/8000)%agent.bubbles.length;
+  // Show bubble for 5s out of every 8s
+  const phase=(t%8000)/8000;
+  if(phase>0.625)return null; // hide for last 3s of cycle
+  return agent.bubbles[idx];
+}
+
+// ═══════════════════════════════════════════════════
+// MAIN RENDER LOOP
+// ═══════════════════════════════════════════════════
+let lastTime=0;
+
+function render(t){
+  const dt=Math.min(t-lastTime,50);lastTime=t;
+  ctx.clearRect(0,0,W,H);
+
+  // Background
+  ctx.fillStyle='#0a0a1a';
+  ctx.fillRect(0,0,W,H);
+
+  // ─── Draw each department section ───
+  for(let d=0;d<DEPARTMENTS.length;d++){
+    drawDeptSection(d,t);
+  }
+
+  // ─── Decorations (per department) ───
+  for(let d=0;d<DEPARTMENTS.length;d++){
+    const dy=getDeptY(d);
+    const baseY=dy+HEADER_HEIGHT*S+200*S;
+
+    // Plants on edges of each department
+    if(d%2===0){
+      drawPlant(30*S,baseY,d,t);
+      drawPlant(W-30*S,baseY,d+2,t);
+    }
+
+    // Water cooler in some departments
+    if(d===0)drawWaterCooler(W-50*S,baseY-20*S);
+    if(d===2)drawWaterCooler(30*S+20*S,baseY-20*S);
+
+    // Bookshelf in some departments
+    if(d===3)drawBookshelf(10*S,dy+HEADER_HEIGHT*S+40*S);
+    if(d===4)drawBookshelf(W-50*S,dy+HEADER_HEIGHT*S+40*S);
+
+    // Whiteboard in command center
+    if(d===0){
+      const mPos=getAgentPos(AGENTS[0]);
+      drawWhiteboard(mPos.x-25*S,dy+HEADER_HEIGHT*S+20*S);
+    }
+  }
+
+  // ─── Draw all agents ───
+  AGENTS.forEach((agent,idx)=>{
+    const pos=getAgentPos(agent);
+    const isOnline=agent.status==='online';
+    const isOff=agent.status==='offline';
+    const isIdle=agent.status==='idle';
+
+    // Bobbing for online agents
+    const bob=isOnline?Math.sin(t*0.003+idx*1.2)*2.5*S:0;
+
+    const asc=agent.scale;
+    const spriteH=23*PX*S*asc;
+    const spriteW=20*PX*S*asc;
+    const ax=pos.x-spriteW/2;
+    const ay=pos.y-spriteH+bob;
+
+    // Desk (behind agent)
+    drawDesk(pos.x,pos.y-6*S,asc,agent,t);
+
+    // Dim offline/idle agents
+    if(isOff){
+      ctx.globalAlpha=0.3;
+    } else if(isIdle){
+      ctx.globalAlpha=0.55;
+    }
+
+    // Draw sprite
+    if(spriteDrawers[idx]){
+      spriteDrawers[idx](ax,ay,asc,t);
+    }
+
+    ctx.globalAlpha=1;
+
+    // Floating particles for online agents
+    if(isOnline && Math.random()<0.025){
+      spawnParticle(
+        pos.x+(Math.random()-0.5)*30*S,
+        pos.y-15*S+Math.random()*15*S,
+        agent.color
+      );
+    }
+
+    // Name tag below desk
+    drawNameTag(pos.x,pos.y+32*S*asc,agent.name,agent.color,agent.status);
+
+    // Speech bubble
+    const bubble=getCurrentBubble(agent,t+idx*2000);
+    if(bubble){
+      drawSpeechBubble(pos.x,ay-8*S,bubble,agent.color);
+    }
+  });
+
+  // ─── Particles ───
+  updateParticles(dt);
+  drawParticles();
+  updateSteam(dt);
+  drawSteam();
+
+  requestAnimationFrame(render);
+}
+
+requestAnimationFrame(render);
+
+// ═══════════════════════════════════════════════════════════════
+// LIVE DATA LAYER — WebSocket connection to OpenClaw Gateway
+// ═══════════════════════════════════════════════════════════════
+
+const GATEWAY_TOKEN = '41abe79a3a92d91413aebf177b79bc181f6ad03f1a784ea0';
+const GATEWAY_WS_URL = 'ws://localhost:18789';
+const POLL_INTERVAL = 30000; // 30 seconds
+const ONLINE_THRESHOLD = 5 * 60 * 1000;  // 5 min
+const IDLE_THRESHOLD = 30 * 60 * 1000;    // 30 min
+
+// Agent ID → AGENTS array index map
+// Agent ID (from OpenClaw config) → AGENTS array index
+// Scout in the dashboard maps to both 'scout' and 'research' agent IDs
+const AGENT_ID_MAP = {
+  'main': 0, 'ziggy': 1, 'scout': 2, 'research': 2,
+  'forge': 3, 'dev': 4, 'codex': 5,
+  'katman-seo': 6, 'katman-social': 7, 'katman-orders': 8,
+  'katman-analytics': 9, 'katman-product': 10,
+  'seers-writer': 11, 'seers-research': 12, 'seers-editor': 13,
+  'memory-curator': 14, 'knowledge-graph': 15, 'archivist': 16,
+  'health-monitor': 17, 'cron-manager': 18, 'security-agent': 19,
+  'market-watch': 20, 'tech-scout': 21, 'competitor-intel': 22,
+  'calendar-agent': 23, 'finance-agent': 24, 'denizevi-agent': 25
+};
+
+let liveWs = null;
+let liveReqId = 0;
+let liveConnected = false;
+let livePollTimer = null;
+let liveReconnectTimer = null;
+let liveLastUpdate = null;
+let livePendingCallbacks = {};
+
+function liveSetBadge(state, text) {
+  const badge = document.getElementById('live-badge');
+  const label = document.getElementById('live-text');
+  if (badge) badge.className = state; // 'connected', 'connecting', 'error'
+  if (label) label.textContent = text || state.toUpperCase();
+}
+
+function liveSetLastUpdated() {
+  liveLastUpdate = Date.now();
+  const el = document.getElementById('last-updated');
+  if (el) {
+    const d = new Date();
+    el.textContent = 'Updated: ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+}
+
+function liveConnect() {
+  if (liveWs && (liveWs.readyState === WebSocket.CONNECTING || liveWs.readyState === WebSocket.OPEN)) return;
+  liveSetBadge('connecting', 'CONNECTING...');
+  
+  try {
+    liveWs = new WebSocket(GATEWAY_WS_URL);
+  } catch (e) {
+    liveSetBadge('error', 'WS ERROR');
+    liveScheduleReconnect();
+    return;
+  }
+
+  liveWs.onopen = () => {
+    // Send connect request with a small delay to allow challenge event
+    setTimeout(() => {
+      liveSendConnect();
+    }, 800);
+  };
+
+  liveWs.onmessage = (evt) => {
+    let msg;
+    try { msg = JSON.parse(evt.data); } catch { return; }
+
+    if (msg.type === 'event' && msg.event === 'connect.challenge') {
+      // Challenge received, send connect if not already sent
+      return;
+    }
+
+    if (msg.type === 'res') {
+      const cb = livePendingCallbacks[msg.id];
+      if (cb) {
+        delete livePendingCallbacks[msg.id];
+        if (msg.ok) cb.resolve(msg.payload);
+        else cb.reject(msg.error);
+      }
+    }
+  };
+
+  liveWs.onclose = () => {
+    liveConnected = false;
+    liveSetBadge('error', 'DISCONNECTED');
+    liveScheduleReconnect();
+  };
+
+  liveWs.onerror = () => {
+    liveSetBadge('error', 'WS ERROR');
+  };
+}
+
+function liveSendConnect() {
+  if (!liveWs || liveWs.readyState !== WebSocket.OPEN) return;
+  
+  liveRequest('connect', {
+    minProtocol: 3, maxProtocol: 3,
+    client: { id: 'openclaw-control-ui', version: 'dev', platform: 'web', mode: 'ui', instanceId: 'dashboard-live-' + Date.now() },
+    role: 'operator', scopes: ['operator.admin'],
+    auth: { token: GATEWAY_TOKEN }, caps: []
+  }).then(() => {
+    liveConnected = true;
+    liveSetBadge('connected', 'LIVE');
+    liveFetchAndUpdate();
+    livePollTimer = setInterval(liveFetchAndUpdate, POLL_INTERVAL);
+  }).catch((err) => {
+    console.warn('[Dashboard LIVE] Connect failed:', err);
+    liveSetBadge('error', 'AUTH FAIL');
+    liveWs?.close();
+  });
+}
+
+function liveRequest(method, params) {
+  return new Promise((resolve, reject) => {
+    if (!liveWs || liveWs.readyState !== WebSocket.OPEN) {
+      reject(new Error('not connected'));
+      return;
+    }
+    const id = String(++liveReqId);
+    livePendingCallbacks[id] = { resolve, reject };
+    liveWs.send(JSON.stringify({ type: 'req', id, method, params }));
+    // Timeout
+    setTimeout(() => {
+      if (livePendingCallbacks[id]) {
+        delete livePendingCallbacks[id];
+        reject(new Error('timeout'));
+      }
+    }, 10000);
+  });
+}
+
+function liveScheduleReconnect() {
+  if (livePollTimer) { clearInterval(livePollTimer); livePollTimer = null; }
+  if (liveReconnectTimer) clearTimeout(liveReconnectTimer);
+  liveReconnectTimer = setTimeout(liveConnect, 5000);
+}
+
+async function liveFetchAndUpdate() {
+  if (!liveConnected) return;
+  try {
+    // Fetch sessions list
+    const sessResult = await liveRequest('sessions.list', { 
+      includeGlobal: true, includeUnknown: true 
+    });
+    
+    // Also fetch health info
+    let healthResult = null;
+    try {
+      healthResult = await liveRequest('health', {});
+    } catch (e) { /* ignore */ }
+    
+    // Also fetch cron status
+    let cronResult = null;
+    try {
+      cronResult = await liveRequest('cron.status', {});
+    } catch (e) { /* ignore */ }
+
+    // Process sessions — group by agentId, find most recent activity
+    const agentActivity = {};
+    const sessions = sessResult?.sessions || [];
+    const now = Date.now();
+    let totalActiveSessions = 0;
+
+    for (const sess of sessions) {
+      const aid = sess.agentId || 'main';
+      const updatedAt = sess.updatedAt || sess.createdAt || 0;
+      if (!agentActivity[aid] || updatedAt > agentActivity[aid].updatedAt) {
+        agentActivity[aid] = { updatedAt, active: sess.active, label: sess.label, key: sess.key };
+      }
+      if (sess.active) totalActiveSessions++;
+    }
+
+    // Update each agent's status — use a Set to avoid double-counting
+    // (research and scout both map to index 2)
+    let onlineCount = 0, idleCount = 0, offlineCount = 0;
+    const processedIdx = new Set();
+    
+    for (const [agentId, idx] of Object.entries(AGENT_ID_MAP)) {
+      if (processedIdx.has(idx)) continue; // skip duplicate mappings
+      processedIdx.add(idx);
+      if (idx >= AGENTS.length) continue;
+      
+      // For duplicate mappings (scout/research), check both agent IDs
+      const possibleIds = Object.entries(AGENT_ID_MAP).filter(([,i]) => i === idx).map(([id]) => id);
+      let bestActivity = null;
+      for (const pid of possibleIds) {
+        const act = agentActivity[pid];
+        if (act && (!bestActivity || act.updatedAt > bestActivity.updatedAt)) {
+          bestActivity = act;
+        }
+      }
+      
+      let newStatus;
+      if (bestActivity) {
+        const elapsed = now - bestActivity.updatedAt;
+        if (elapsed < ONLINE_THRESHOLD) {
+          newStatus = 'online';
+          onlineCount++;
+        } else if (elapsed < IDLE_THRESHOLD) {
+          newStatus = 'idle';
+          idleCount++;
+        } else {
+          newStatus = 'offline';
+          offlineCount++;
+        }
+      } else {
+        newStatus = 'offline';
+        offlineCount++;
+      }
+      
+      AGENTS[idx].status = newStatus;
+    }
+    
+    // Update banner status dots
+    const gwDot = document.querySelector('.status-dots span:nth-child(1) .dot');
+    if (gwDot) { gwDot.className = 'dot on'; }
+
+    // Update ticker with real data
+    updateTicker(onlineCount + idleCount, AGENTS.length, totalActiveSessions, sessions.length, healthResult, cronResult);
+    
+    liveSetLastUpdated();
+    liveSetBadge('connected', 'LIVE');
+    
+  } catch (e) {
+    console.warn('[Dashboard LIVE] Fetch error:', e);
+    liveSetBadge('error', 'FETCH ERR');
+  }
+}
+
+function updateTicker(onlineAgents, totalAgents, activeTasks, totalSessions, health, cron) {
+  const tickerInner = document.getElementById('ticker-inner');
+  if (!tickerInner) return;
+  
+  // Calculate uptime from health
+  let uptimeStr = '—';
+  if (health?.uptime || health?.uptimeMs) {
+    const ms = health.uptimeMs || (health.uptime * 1000);
+    const days = Math.floor(ms / 86400000);
+    const hours = Math.floor((ms % 86400000) / 3600000);
+    uptimeStr = days > 0 ? `${days}d ${hours}h` : `${hours}h`;
+  }
+  
+  // Cron jobs count
+  const cronActive = cron?.enabled ?? '—';
+  const cronTotal = cron?.total ?? '';
+  const cronStr = cronTotal ? `${cronActive}/${cronTotal}` : `${cronActive}`;
+  
+  // Build ticker items
+  const items = [
+    { cls: 'nominal', text: onlineAgents === totalAgents ? 'ALL SYSTEMS NOMINAL' : `${onlineAgents}/${totalAgents} AGENTS ACTIVE` },
+    { text: `Agents Online: ${onlineAgents}/${totalAgents}` },
+    { text: `Active Sessions: ${totalSessions}` },
+    { text: `Departments: 8` },
+    { text: `Uptime: ${uptimeStr}` },
+    { text: `Crons: ${cronStr} active` },
+    { text: `Gateway: localhost:18789` },
+    { text: `Mode: LIVE 🔴` }
+  ];
+  
+  // Build the scrolling HTML (duplicated for seamless loop)
+  const buildSpans = () => items.map((item, i) => {
+    const sep = i > 0 ? '<span class="sep">|</span>' : '';
+    const cls = item.cls ? ` class="${item.cls}"` : '';
+    return `${sep}<span${cls}>${item.text}</span>`;
+  }).join('');
+  
+  tickerInner.innerHTML = buildSpans() + '<span class="sep">|</span>' + buildSpans();
+}
+
+// ─── FALLBACK: Direct file reading via fetch (for file:// protocol) ───
+// If WebSocket fails (e.g., opened via file://), fall back to reading
+// session files from a companion sidecar server or disable live updates.
+
+async function liveFallbackFileMode() {
+  // Try to read from a companion server at port 3847
+  try {
+    const resp = await fetch('http://localhost:3847/api/agent-status');
+    if (resp.ok) {
+      const data = await resp.json();
+      applyFallbackData(data);
+      liveSetLastUpdated();
+      liveSetBadge('connected', 'LIVE (FILE)');
+      return true;
+    }
+  } catch (e) { /* fallback server not running */ }
+  return false;
+}
+
+function applyFallbackData(data) {
+  if (!data || !data.agents) return;
+  let onlineCount = 0;
+  for (const [agentId, info] of Object.entries(data.agents)) {
+    const idx = AGENT_ID_MAP[agentId];
+    if (idx === undefined || idx >= AGENTS.length) continue;
+    AGENTS[idx].status = info.status;
+    if (info.status === 'online') onlineCount++;
+  }
+  updateTicker(onlineCount, AGENTS.length, data.totalSessions || 0, data.totalSessions || 0, null, null);
+}
+
+// ─── INIT LIVE CONNECTION ───
+// Small delay to let the render loop start first
+setTimeout(() => {
+  // If opened via file://, WebSocket to localhost should still work in most browsers
+  liveConnect();
+}, 1500);
+
+</script>
+</body>
+</html>
