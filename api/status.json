@@ -1,0 +1,52 @@
+{
+  "timestamp": "2026-02-14T11:00:00Z",
+  "gateway": {
+    "status": "online",
+    "uptime": "20d 14h",
+    "uptimeMs": 1776000000,
+    "version": "0.9.x",
+    "host": "Mac Studio M3 Ultra"
+  },
+  "agents": {
+    "online": 22,
+    "total": 27,
+    "idle": 3,
+    "offline": 2
+  },
+  "sessions": {
+    "active": 14,
+    "total": 48
+  },
+  "crons": {
+    "active": 21,
+    "total": 24,
+    "lastFired": "2026-02-14T08:00:00Z",
+    "nextFire": "2026-02-14T09:00:00Z"
+  },
+  "memory": {
+    "docs": 20241,
+    "knowledgeGraphNodes": 3847
+  },
+  "channels": {
+    "whatsapp": "online",
+    "telegram": "idle",
+    "slack": "online",
+    "email": "online"
+  },
+  "katman": {
+    "launchDate": "2026-02-17",
+    "readinessPercent": 85,
+    "productsReady": 15,
+    "productsTotal": 125
+  },
+  "meeting": {
+    "active": true,
+    "topic": "Katman Launch Sprint — Final Review",
+    "participants": ["Mahmut", "Ziggy", "katman-seo", "katman-social"],
+    "startedAt": "2026-02-14T10:30:00Z"
+  },
+  "standup": {
+    "last": "2026-02-13T23:00:00Z",
+    "next": "2026-02-14T09:00:00Z"
+  }
+}

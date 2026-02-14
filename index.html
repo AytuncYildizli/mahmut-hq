@@ -1540,17 +1540,33 @@ function drawSpeechBubble(x,y,text,color){
 
 // ─── NAME TAG ───
 function drawNameTag(x,y,name,color,status){
-  ctx.font=`bold ${9*S}px 'Courier New', monospace`;
+  const fs=12*S;
+  ctx.font=`bold ${fs}px 'Courier New', monospace`;
   ctx.textAlign='center';
   ctx.textBaseline='top';
   const isOff=status==='offline';
-  ctx.fillStyle=isOff?rgba('#888',0.5):rgba(color,0.85);
+  const tw=ctx.measureText(name).width;
+  const pad=6*S;
+  // contrast background pill
+  ctx.fillStyle='rgba(0,0,0,0.75)';
+  const rx=x-tw/2-pad, ry=y-2*S, rw=tw+pad*2, rh=fs+6*S, cr=4*S;
+  ctx.beginPath();
+  ctx.moveTo(rx+cr,ry);ctx.lineTo(rx+rw-cr,ry);ctx.quadraticCurveTo(rx+rw,ry,rx+rw,ry+cr);
+  ctx.lineTo(rx+rw,ry+rh-cr);ctx.quadraticCurveTo(rx+rw,ry+rh,rx+rw-cr,ry+rh);
+  ctx.lineTo(rx+cr,ry+rh);ctx.quadraticCurveTo(rx,ry+rh,rx,ry+rh-cr);
+  ctx.lineTo(rx,ry+cr);ctx.quadraticCurveTo(rx,ry,rx+cr,ry);
+  ctx.closePath();ctx.fill();
+  // glow border
+  ctx.strokeStyle=isOff?'rgba(100,100,100,0.3)':rgba(color,0.4);
+  ctx.lineWidth=S;ctx.stroke();
+  // name text
+  ctx.fillStyle=isOff?rgba('#888',0.5):rgba(color,1);
   ctx.fillText(name,x,y);
   // status dot
-  const dotX=x-ctx.measureText(name).width/2-6*S;
-  const dotY=y+4*S;
+  const dotX=x-tw/2-pad+4*S;
+  const dotY=y+fs/2;
   ctx.beginPath();
-  ctx.arc(dotX,dotY,2.5*S,0,Math.PI*2);
+  ctx.arc(dotX,dotY,3.5*S,0,Math.PI*2);
   ctx.fillStyle=status==='online'?'#22c55e':(status==='idle'?'#f59e0b':'#555');
   ctx.fill();
 }
