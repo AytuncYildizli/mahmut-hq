@@ -120,7 +120,8 @@ const DEPARTMENTS = [
   {name:'MEMORY & KNOWLEDGE', color:'#ec4899', glowColor:'#f472b6', agents:3},
   {name:'DEVOPS & INFRA', color:'#22c55e', glowColor:'#4ade80', agents:3},
   {name:'RESEARCH & INTEL', color:'#3b82f6', glowColor:'#60a5fa', agents:3},
-  {name:'PERSONAL', color:'#14b8a6', glowColor:'#2dd4bf', agents:3}
+  {name:'PERSONAL', color:'#14b8a6', glowColor:'#2dd4bf', agents:3},
+  {name:'CLAWTR / SKOOL', color:'#06b6d4', glowColor:'#22d3ee', agents:3}
 ];
 
 // ─── AGENT DATA ───
@@ -191,7 +192,15 @@ const AGENTS = [
   {name:'finance-agent',color:'#eab308',role:'Finance',status:'online',dept:8,col:1,scale:1.0,
    bubbles:['Budget OK 💰','Invoice sent','₺ tracked','Portfolio +2.3%']},
   {name:'denizevi-agent',color:'#14b8a6',role:'Smart Home',status:'online',dept:8,col:2,scale:1.0,
-   bubbles:['Lights dimmed 🏠','Temp: 22°C','All secure 🔒','Energy saved']}
+   bubbles:['Lights dimmed 🏠','Temp: 22°C','All secure 🔒','Energy saved']},
+
+  // CLAWTR / SKOOL (dept 9)
+  {name:'clawtr-content',color:'#06b6d4',role:'Content Engine',status:'online',dept:9,col:0,scale:1.0,
+   bubbles:['Post ready ✍️','Skill spotlight','TIL drafted','Series planned']},
+  {name:'clawtr-growth',color:'#0ea5e9',role:'Community Growth',status:'online',dept:9,col:1,scale:1.0,
+   bubbles:['New member! 🎉','TR AI search','Engage tweet','Outreach sent']},
+  {name:'clawtr-curator',color:'#14b8a6',role:'Skill Curator',status:'online',dept:9,col:2,scale:1.0,
+   bubbles:['25+ skills 📋','Audit done ✅','New tutorial','Guide written']}
 ];
 
 // ─── COLOR UTILS ───
